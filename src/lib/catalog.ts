@@ -157,15 +157,15 @@ export const CATALOG: CatalogItem[] = [
     description: { en: "Five-course gourmet menu with premium drinks, per guest.", ro: "Meniu gourmet în cinci feluri cu băuturi premium, per invitat." },
     long: { en: "An elevated five-course tasting menu crafted by the chef, paired with premium wines and an open bar. Plated service, dietary options on request — a dinner your guests will talk about for years.", ro: "Un meniu rafinat în cinci feluri creat de bucătar, alături de vinuri premium și open bar. Servire la farfurie, opțiuni dietetice la cerere — o cină despre care invitații vor vorbi ani de zile." },
     includes: { en: ["Five gourmet courses, plated", "Premium wines + open bar", "Welcome cocktail & canapés", "Vegetarian/vegan options"], ro: ["Cinci feluri gourmet, servite", "Vinuri premium + open bar", "Cocktail de bun-venit & canapé-uri", "Opțiuni vegetariene/vegane"] } }),
-  mk({ id: "uni_menu", category: "catering", eventTypes: [U], unit: "per_guest", price: 30, popular: true,
+  mk({ id: "uni_menu", category: "catering", eventTypes: [U], unit: "per_guest", price: 22, popular: true,
     name: { en: "Banquet Menu", ro: "Meniu Banchet" }, description: { en: "Festive banquet dinner, per guest.", ro: "Cină festivă de banchet, per invitat." } }),
-  mk({ id: "hs_menu", category: "catering", eventTypes: [H], unit: "per_guest", price: 25, popular: true,
+  mk({ id: "hs_menu", category: "catering", eventTypes: [H], unit: "per_guest", price: 18, popular: true,
     name: { en: "Banquet Menu", ro: "Meniu Banchet" }, description: { en: "Festive plated dinner with drinks, per guest.", ro: "Meniu festiv servit cu băuturi, per invitat." } }),
-  mk({ id: "welcome_cocktail", category: "catering", eventTypes: ALL, unit: "per_guest", price: 6,
+  mk({ id: "welcome_cocktail", category: "catering", eventTypes: ALL, unit: "per_guest", price: 5,
     name: { en: "Welcome Cocktail", ro: "Cocktail de Bun-venit" }, description: { en: "Canapés and a welcome drink on arrival, per guest.", ro: "Canapé-uri și o băutură de bun-venit la sosire, per invitat." } }),
 
   // ===== BAR =====
-  mk({ id: "bar_open", category: "bar", eventTypes: [W, U], unit: "per_guest", price: 18,
+  mk({ id: "bar_open", category: "bar", eventTypes: [W, U], unit: "per_guest", price: 14,
     name: { en: "Open Bar", ro: "Open Bar" }, description: { en: "Unlimited bar all night, per guest.", ro: "Bar nelimitat toată noaptea, per invitat." } }),
   mk({ id: "bar_cocktail", category: "bar", eventTypes: [W, U], unit: "flat", price: 800,
     name: { en: "Cocktail Bar", ro: "Cocktail Bar" }, description: { en: "Mixologist with a signature cocktail menu.", ro: "Mixolog cu meniu de cocktail-uri semnătură." } }),
@@ -191,7 +191,7 @@ export const CATALOG: CatalogItem[] = [
     description: { en: "Full-day photographer + videographer, edited gallery & film.", ro: "Fotograf + videograf toată ziua, galerie și film editat." },
     long: { en: "A complete two-person team captures your entire day — from getting ready to the last dance. You receive a beautifully edited online gallery and a cinematic wedding film you'll treasure for life.", ro: "O echipă completă de doi profesioniști surprinde toată ziua — de la pregătiri până la ultimul dans. Primești o galerie online editată impecabil și un film de nuntă cinematic, de păstrat o viață." },
     includes: { en: ["Photographer + videographer, full day", "300+ professionally edited photos", "5–7 min cinematic highlight film", "Private online gallery & download"], ro: ["Fotograf + videograf, toată ziua", "300+ poze editate profesional", "Film cinematic de 5–7 min", "Galerie online privată & download"] } }),
-  mk({ id: "uni_portrait", category: "photography", eventTypes: [U], unit: "per_graduate", price: 45, popular: true,
+  mk({ id: "uni_portrait", category: "photography", eventTypes: [U], unit: "per_graduate", price: 32, popular: true,
     name: { en: "Portrait Session", ro: "Ședință Portret" }, description: { en: "Studio portraits in your gown, 10 retouched photos.", ro: "Portrete în robă, 10 poze retușate." } }),
   mk({ id: "uni_album", category: "photography", eventTypes: [U], unit: "per_graduate", price: 22,
     name: { en: "Personalized Album", ro: "Album Personalizat" }, description: { en: "Printed keepsake album per graduate.", ro: "Album tipărit per absolvent." } }),
@@ -290,12 +290,12 @@ export const CATALOG: CatalogItem[] = [
     name: { en: "Themed Photo Zone", ro: "Zonă Foto Amenajată" }, description: { en: "Decorated backdrop corner with props (e.g. 'Absolvire 2026').", ro: "Colț cu backdrop decorat și recuzită (ex. „Absolvire 2026”)." } }),
 
   // ===== ATTIRE / RENTALS =====
-  mk({ id: "uni_gown", category: "attire", eventTypes: [U], unit: "per_graduate", price: 28, popular: true,
+  mk({ id: "uni_gown", category: "attire", eventTypes: [U], unit: "per_graduate", price: 22, popular: true,
     name: { en: "Togă & Tocă Rental", ro: "Închiriere Togă & Tocă" },
     description: { en: "Gown, cap and tassel in faculty colors.", ro: "Togă, tocă și ciucure în culorile facultății." },
     long: { en: "A premium graduation set in your faculty's colors — gown, cap and tassel, freshly cleaned and pressed in your exact size. Delivered ready for the ceremony and collected afterwards, so you have nothing to worry about.", ro: "Un set premium de absolvire în culorile facultății tale — togă, tocă și ciucure, curățate și călcate proaspăt, pe mărimea ta exactă. Livrate gata pentru ceremonie și ridicate după, fără bătăi de cap." },
     includes: { en: ["Gown, cap & tassel, per graduate", "Faculty colors, exact sizing", "Cleaned & pressed", "Delivery + collection"], ro: ["Togă, tocă & ciucure, per absolvent", "Culorile facultății, mărime exactă", "Curățate & călcate", "Livrare + ridicare"] } }),
-  mk({ id: "hs_gown", category: "attire", eventTypes: [H], unit: "per_graduate", price: 30, popular: true,
+  mk({ id: "hs_gown", category: "attire", eventTypes: [H], unit: "per_graduate", price: 22, popular: true,
     name: { en: "Cap, Gown & Sash", ro: "Tocă, Robă & Eșarfă" }, description: { en: "Ceremony set personalized with the school logo.", ro: "Set de ceremonie personalizat cu sigla liceului." } }),
 
   // ===== PRINT / PERSONALIZED =====
@@ -337,7 +337,7 @@ export const CATALOG: CatalogItem[] = [
     name: { en: "Digital Photo Album", ro: "Album Foto Digital" }, description: { en: "Online shared album with all the photos, per graduate.", ro: "Album digital online cu toate pozele, per absolvent." } }),
   mk({ id: "grad_balloon_machine", category: "effects", eventTypes: [U, H], unit: "flat", price: 120,
     name: { en: "Balloon Machine & Arch", ro: "Mașină de Baloane & Arcadă" }, description: { en: "Balloon machine and a themed balloon arch.", ro: "Mașină de baloane și arcadă tematică." } }),
-  mk({ id: "grad_champagne", category: "bar", eventTypes: [U, H], unit: "per_guest", price: 7,
+  mk({ id: "grad_champagne", category: "bar", eventTypes: [U, H], unit: "per_guest", price: 5,
     name: { en: "Champagne & Biscuits", ro: "Șampanie & Pișcoturi" }, description: { en: "Welcome toast with champagne and biscuits, per guest.", ro: "Toast de bun-venit cu șampanie și pișcoturi, per invitat." } }),
 
   // ===== TRANSPORT =====
@@ -371,7 +371,7 @@ export const CATALOG: CatalogItem[] = [
     name: { en: "Event Marquee", ro: "Cort de Eveniment" }, description: { en: "Elegant tent/marquee for an outdoor celebration, with flooring.", ro: "Cort elegant pentru eveniment în aer liber, cu pardoseală." } }),
   mk({ id: "av_screen", category: "rentals", eventTypes: ALL, unit: "flat", price: 400,
     name: { en: "LED Screen & Projector", ro: "Ecran LED & Proiector" }, description: { en: "Big LED screen / projector for photos, slideshows and live feed.", ro: "Ecran LED mare / proiector pentru poze, slideshow și transmisie live." } }),
-  mk({ id: "late_snacks", category: "catering", eventTypes: [W, U, H], unit: "per_guest", price: 12,
+  mk({ id: "late_snacks", category: "catering", eventTypes: [W, U, H], unit: "per_guest", price: 9,
     name: { en: "Late-night Snacks", ro: "Gustări de Noapte" }, description: { en: "Midnight bites to keep the party going, per guest.", ro: "Gustări de la miezul nopții ca să țină petrecerea, per invitat." } }),
 
   // ===== ACCOMMODATION, LOGISTICS, LIVESTREAM, PREMIUM BAR, GIFTS =====

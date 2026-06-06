@@ -48,7 +48,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
       <div className="card-soft animate-rise overflow-hidden">
         {/* Header band */}
         <div className="bg-ink px-7 py-8 text-center text-ivory">
-          <div className="text-3xl">{evt?.icon ?? "🎉"}</div>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-gold-soft">Event Concierge</div>
           <h1 className="text-display mt-2 text-2xl">{tr(isDraft ? L.draftTitle : L.confirmed, lang)}</h1>
           <p className="mt-1 text-sm text-ivory/70">
             {tr(L.ref, lang)}: <span className="font-mono tracking-widest text-gold-soft">{booking.ref}</span>

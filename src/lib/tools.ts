@@ -477,9 +477,18 @@ export async function executeTool(
     case "propose_package": {
       const proposal = await proposePackage(state, args.preferences as string | undefined);
       let next = state;
-      for (const id of proposal.itemIds) next = addItem(next, id);
-      const added = proposal.itemIds.map((id) => itemById(id)?.name.en).filter(Boolean);
-      return { state: next, result: { ok: true, added, note: proposal.note, quote: computeQuote(next), stepIndex: next.stepIndex } };
+      const budget = state.context.budget ?? 0;
+      const added: string[] = [];
+      let skipped = 0;
+      for (const id of proposal.itemIds) {
+        const candidate = addItem(next, id);
+        // Hard budget cap — build UP TO the budget, never over it.
+        if (budget > 0 && computeQuote(candidate).total > budget) { skipped++; continue; }
+        next = candidate;
+        const nm = itemById(id)?.name.en;
+        if (nm) added.push(nm);
+      }
+      return { state: next, result: { ok: true, added, skipped, note: proposal.note, withinBudget: budget > 0 ? budget : "flexible", quote: computeQuote(next), stepIndex: next.stepIndex } };
     }
 
     case "get_quote":

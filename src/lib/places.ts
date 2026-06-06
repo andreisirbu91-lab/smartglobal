@@ -76,7 +76,7 @@ const hash = (s: string) => {
   return Math.abs(h);
 };
 
-const VENUE_FLAT: Record<number, number> = { 1: 600, 2: 1200, 3: 2200, 4: 3500 };
+const VENUE_FLAT: Record<number, number> = { 1: 450, 2: 800, 3: 1400, 4: 2200 };
 
 /** Rough, varied price estimate per kind so results aren't all identical. */
 function estimate(kind: Kind, level: number | undefined, seed: number): { estFlatPrice?: number; estPricePerGuest?: number } {
