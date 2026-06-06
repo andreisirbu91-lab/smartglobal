@@ -92,10 +92,10 @@ export function CatalogCard({
                 <p className="text-sm leading-relaxed text-ink-soft">{item.long ? tr(item.long, lang) : tr(item.description, lang)}</p>
                 <p className="rounded-lg bg-gold/[0.06] px-3 py-2 text-[12px] text-ink-soft">
                   {item.unit === "per_guest"
-                    ? (lang === "ro" ? "📐 Se calculează per invitat — prețul se înmulțește cu numărul total de invitați." : "📐 Charged per guest — the price multiplies by your total guest count.")
+                    ? (lang === "ro" ? "Se calculează per invitat — prețul se înmulțește cu numărul total de invitați." : "Charged per guest — the price multiplies by your total guest count.")
                     : item.unit === "per_graduate"
-                      ? (lang === "ro" ? "📐 Se calculează per absolvent — prețul se înmulțește cu numărul de absolvenți." : "📐 Charged per graduate — the price multiplies by the number of graduates.")
-                      : (lang === "ro" ? "📐 Preț fix — o singură dată pentru tot evenimentul." : "📐 Flat price — one-off for the whole event.")}
+                      ? (lang === "ro" ? "Se calculează per absolvent — prețul se înmulțește cu numărul de absolvenți." : "Charged per graduate — the price multiplies by the number of graduates.")
+                      : (lang === "ro" ? "Preț fix — o singură dată pentru tot evenimentul." : "Flat price — one-off for the whole event.")}
                 </p>
                 {item.includes && (
                   <ul className="space-y-1.5">

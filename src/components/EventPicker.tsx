@@ -17,11 +17,10 @@ export function EventPicker({ lang, onPick }: { lang: Lang; onPick: (id: EventTy
           <button
             key={e.id}
             onClick={() => onPick(e.id)}
-            className="card-soft group flex flex-col items-center gap-2 px-4 py-8 text-center transition hover:-translate-y-1 hover:ring-2 hover:ring-gold"
+            className="card-soft group flex flex-col items-start gap-1 p-5 text-left transition hover:border-ink/25 hover:bg-ivory/40"
           >
-            <span className="text-5xl transition group-hover:scale-110">{e.icon}</span>
             <span className="text-display text-lg text-ink">{tr(e.name, lang)}</span>
-            <span className="text-[12px] text-ink-soft">{tr(e.tagline, lang)}</span>
+            <span className="text-[13px] leading-snug text-ink-soft">{tr(e.tagline, lang)}</span>
           </button>
         ))}
       </div>

@@ -6,12 +6,6 @@ import type { Lang, Venue } from "@/lib/types";
 import { money, ron } from "@/lib/format";
 import { t } from "@/lib/i18n";
 
-function viewers(placeId: string): number {
-  let h = 0;
-  for (let i = 0; i < placeId.length; i++) h = (h * 31 + placeId.charCodeAt(i)) | 0;
-  return 3 + (Math.abs(h) % 8); // 3..10
-}
-
 function priceOf(v: Venue): { amount: number; perGuest: boolean } {
   if (v.estFlatPrice) return { amount: v.estFlatPrice, perGuest: false };
   if (v.estPricePerGuest) return { amount: v.estPricePerGuest, perGuest: true };
@@ -62,7 +56,7 @@ export function VenueStep({
   return (
     <div className="animate-rise space-y-4">
       <div className="flex items-center justify-between">
-        <Pill tone="gold">📍 {headerLabel ?? `${city} · ${t("recommended", lang)}`}</Pill>
+        <Pill tone="gold">{headerLabel ?? `${city} · ${t("recommended", lang)}`}</Pill>
         <span className="text-[12px] text-ink-soft">{venues.length}</span>
       </div>
 
@@ -80,14 +74,11 @@ export function VenueStep({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={v.photoUrl} alt={v.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 ) : (
-                  <div className="grid h-full w-full place-items-center bg-ivory-deep text-3xl">🏛️</div>
+                  <div className="grid h-full w-full place-items-center bg-ivory-deep text-3xl"></div>
                 )}
                 {v.rating && (
                   <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-medium text-ink">★ {v.rating}</span>
                 )}
-                <span className="absolute bottom-2 left-2 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] text-white">
-                  🔴 {viewers(v.placeId)} {lang === "ro" ? "se uită acum" : "viewing now"}
-                </span>
                 <button
                   onClick={(e) => { e.stopPropagation(); setDetail(v); }}
                   className="absolute right-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-medium text-ink shadow transition hover:bg-white"
@@ -191,7 +182,7 @@ function VenueDetailModal({
             </div>
           )}
           <div className="space-y-3 p-4">
-            {venue.address && <p className="text-[12px] text-ink-soft">📍 {venue.address}</p>}
+            {venue.address && <p className="text-[12px] text-ink-soft">{venue.address}</p>}
             {venue.reviewQuote && <p className="rounded-xl bg-ivory/60 p-3 text-sm italic text-ink-soft">“{venue.reviewQuote}”</p>}
           </div>
         </div>

@@ -28,7 +28,6 @@ import {
   toggleItem,
 } from "@/lib/engine";
 import { CatalogCard } from "@/components/CatalogCard";
-import { SocialProof } from "@/components/SocialProof";
 import { ChoiceCards } from "@/components/ChoiceCards";
 import { TierCards } from "@/components/TierCards";
 import { money, tr } from "@/lib/format";
@@ -177,7 +176,7 @@ export default function Home() {
       } catch { return; }
     }
     const link = `${window.location.origin}/?s=${id}`;
-    const text = lang === "ro" ? "Hai să planificăm împreună evenimentul 🎉" : "Let's plan the event together 🎉";
+    const text = lang === "ro" ? "Hai să planificăm împreună evenimentul" : "Let's plan the event together";
     if (navigator.share) { try { await navigator.share({ title: "Event Concierge", text, url: link }); return; } catch { /* fall through */ } }
     try { await navigator.clipboard.writeText(link); } catch { /* ignore */ }
     window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${link}`)}`, "_blank");
@@ -497,8 +496,8 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
     setCheckout("searching");
     const ro = lang === "ro";
     const stages = ro
-      ? ["🔎 Caut la furnizorii noștri o ofertă mai bună…", "⏳ Verific reducerile disponibile la parteneri…", "✅ Am găsit ceva!", "🎉 Am deblocat un discount special!"]
-      : ["🔎 Searching our partner suppliers…", "⏳ Checking available partner discounts…", "✅ Found something!", "🎉 Unlocked a special discount!"];
+      ? ["Caut la furnizorii noștri o ofertă mai bună…", "Verific reducerile disponibile la parteneri…", "Am găsit ceva!", "Am deblocat un discount special!"]
+      : ["Searching our partner suppliers…", "Checking available partner discounts…", "Found something!", "Unlocked a special discount!"];
     for (let i = 0; i < stages.length; i++) {
       setDealStatus(stages[i]);
       await new Promise((r) => setTimeout(r, i < stages.length - 1 ? 2800 : 1200));
@@ -587,18 +586,15 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
         <>
           {/* Mobile tab bar */}
           <div className="no-print mb-3 flex gap-1 rounded-full border border-ink/10 bg-white p-1 text-sm lg:hidden">
-            <TabBtn active={tab === "chat"} onClick={() => setTab("chat")}>💬 {lang === "ro" ? "Conversație" : "Conversation"}</TabBtn>
-            <TabBtn active={tab === "cart"} onClick={() => setTab("cart")}>🛒 {money(quote.total)}</TabBtn>
+            <TabBtn active={tab === "chat"} onClick={() => setTab("chat")}>{lang === "ro" ? "Conversație" : "Conversation"}</TabBtn>
+            <TabBtn active={tab === "cart"} onClick={() => setTab("cart")}>{money(quote.total)}</TabBtn>
           </div>
 
           <div className="grid flex-1 gap-4 lg:grid-cols-12">
             {/* Conversation — chat + inline choice/venue/product cards in ONE column */}
             <section className={`card-soft ${show("chat")} ${paneH} flex-col p-4 lg:col-span-8`}>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <PanelTitle>💬 {t("brand", lang)}</PanelTitle>
-                  <SocialProof lang={lang} />
-                </div>
+                <PanelTitle>{t("brand", lang)}</PanelTitle>
                 <RunningTotal total={quote.total} budget={order.context.budget} lang={lang} />
               </div>
               <div className="min-h-0 flex-1">
@@ -709,7 +705,7 @@ function CheckoutModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-1 flex items-center justify-between">
-          <h3 className="text-display text-xl text-ink">{ro ? "Aproape gata 🎉" : "Almost there 🎉"}</h3>
+          <h3 className="text-display text-xl text-ink">{ro ? "Aproape gata" : "Almost there"}</h3>
           <span className="rounded-full bg-gold/10 px-3 py-1 text-[13px] font-medium text-gold-deep">{money(total)}</span>
         </div>
 
@@ -724,13 +720,13 @@ function CheckoutModal({
                   <span className="ml-1 text-gold-deep">({money(suggested.price)}{suggested.unit !== "flat" ? (ro ? "/buc" : "/ea") : ""})</span>
                 </p>
                 <button onClick={() => onAdd(suggested.id)} className="btn-gold mt-3 w-full rounded-full py-2.5 text-sm font-semibold">
-                  ➕ {ro ? "Adaugă-l" : "Add it"}
+                  {ro ? "Adaugă-l" : "Add it"}
                 </button>
               </div>
             ) : null}
 
             <button onClick={onUnlock} className="w-full rounded-full bg-ink py-3 text-sm font-semibold text-ivory transition hover:bg-ink/90">
-              🔓 {ro ? "Caută-mi o ofertă mai bună" : "Unlock me a better deal"}
+              {ro ? "Caută-mi o ofertă mai bună" : "Unlock me a better deal"}
             </button>
             <button onClick={onFinalize} disabled={confirming} className="btn-gold w-full rounded-full py-3 text-sm font-semibold disabled:opacity-50">
               {confirming ? "…" : (ro ? `Finalizează acum · ${money(total)}` : `Finalize now · ${money(total)}`)}
@@ -750,9 +746,8 @@ function CheckoutModal({
 
         {stage === "deal" && (
           <div className="space-y-4 py-1">
-            <div className="rounded-2xl border border-gold/30 bg-gold/[0.06] p-4 text-center">
-              <div className="text-3xl">🎉</div>
-              <p className="mt-2 text-sm text-ink">
+            <div className="rounded-xl border border-ink/12 bg-ivory/50 p-4 text-center">
+              <p className="text-sm text-ink">
                 {ro ? "Am deblocat un discount special pentru pachetul tău!" : "Unlocked a special discount on your package!"}
               </p>
               {discounts.length > 0 && (
@@ -770,7 +765,7 @@ function CheckoutModal({
             {upsells.length > 0 && (
               <div className="rounded-2xl border border-gold/20 p-3">
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-deep/80">
-                  🎁 {ro ? "Adaugă și primești extra" : "Add & unlock extras"}
+                  {ro ? "Adaugă și primești extra" : "Add & unlock extras"}
                 </p>
                 <div className="space-y-2">
                   {upsells.slice(0, 3).map((it) => (
@@ -779,7 +774,7 @@ function CheckoutModal({
                         {tr(it.name, lang)} <span className="text-ink-soft">· {money(it.price)}</span>
                       </span>
                       <button onClick={() => onAdd(it.id)} className="btn-gold shrink-0 rounded-full px-3 py-1 text-[12px] font-semibold">
-                        ➕ {ro ? "Adaugă" : "Add"}
+                        {ro ? "Adaugă" : "Add"}
                       </button>
                     </div>
                   ))}
@@ -819,11 +814,11 @@ function Header({
     <header className="flex flex-wrap items-center justify-between gap-2 py-3 sm:py-4">
       <div className="flex min-w-0 items-center gap-2">
         <button onClick={onHome} className="text-display text-lg tracking-tight text-ink transition hover:opacity-70 sm:text-xl" aria-label="home">
-          <span className="text-gold-deep">✦</span> <span className="hidden sm:inline">{t("brand", lang)}</span>
+          {t("brand", lang)}
         </button>
         {eventName && (
-          <button onClick={onHome} className="no-print inline-flex max-w-[60vw] items-center gap-1 truncate rounded-full border border-gold/30 bg-gold/8 px-2.5 py-1 text-[12px] text-gold-deep transition hover:bg-gold/15 sm:max-w-none">
-            {eventName} <span className="opacity-60">· ⌂ {t("home", lang)}</span>
+          <button onClick={onHome} className="no-print inline-flex max-w-[60vw] items-center gap-1 truncate rounded-full border border-ink/12 bg-ivory px-2.5 py-1 text-[12px] text-ink-soft transition hover:border-ink/25 sm:max-w-none">
+            {eventName} <span className="opacity-50">· {t("home", lang)}</span>
           </button>
         )}
       </div>
@@ -832,7 +827,7 @@ function Header({
           <button
             onClick={onCollaborate}
             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium transition ${
-              collabActive > 1 ? "border-green-500/40 bg-green-500/10 text-green-700" : "border-gold/30 bg-gold/8 text-gold-deep hover:bg-gold/15"
+              collabActive > 1 ? "border-ink/25 bg-ivory text-ink" : "border-ink/12 text-ink-soft hover:border-ink/25 hover:text-ink"
             }`}
             title={lang === "ro" ? "Planificați împreună" : "Plan together"}
           >
@@ -842,7 +837,7 @@ function Header({
                 {collabActive} {lang === "ro" ? "live" : "live"}
               </>
             ) : (
-              <>👥 {lang === "ro" ? "Invită clasa" : "Invite the class"}</>
+              <>{lang === "ro" ? "Invită clasa" : "Invite the class"}</>
             )}
           </button>
         )}
@@ -973,15 +968,14 @@ function Landing({
 
 function EmptyStage({ lang, onOther }: { lang: Lang; onOther: () => void }) {
   return (
-    <div className="animate-rise flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-gold/40 bg-gradient-to-b from-gold/[0.06] to-transparent p-8 text-center">
-      <div className="text-4xl">✨</div>
-      <p className="mt-3 max-w-sm text-sm text-ink-soft">
+    <div className="animate-rise flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-ink/15 p-8 text-center">
+      <p className="max-w-sm text-sm text-ink-soft">
         {lang === "ro"
           ? "Spune-mi ce-ți dorești și-ți aduc aici variante reale — locații, foto, muzică — pe care le alegi cu un click."
           : "Tell me what you'd like and I'll bring real options here — venues, photo, music — to pick with one tap."}
       </p>
       <button onClick={onOther} className="btn-gold mt-4 inline-flex rounded-full px-5 py-2.5 text-sm font-semibold">
-        {lang === "ro" ? "✍️ Scrie ce vrei" : "✍️ Type what you want"}
+        {lang === "ro" ? "Scrie ce vrei" : "Type what you want"}
       </button>
     </div>
   );
@@ -1004,14 +998,14 @@ function SpotlightPanel({
   const items = ids.map((id) => itemById(id)).filter((i) => i && !selectedIds.has(i.id));
   if (!items.length) return null;
   return (
-    <div className="mb-4 rounded-2xl border border-gold/40 bg-gold/5 p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-gold-deep">
-          ✦ {lang === "ro" ? "Recomandate de concierge" : "Concierge picks"}
+    <div className="space-y-2.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-soft">
+          {lang === "ro" ? "Recomandări" : "Recommendations"}
         </span>
         <button onClick={onDismiss} className="text-ink-soft/60 hover:text-ink" aria-label="dismiss">✕</button>
       </div>
-      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(148px, 1fr))" }}>
+      <div className="grid gap-2.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}>
         {items.map((item) => (
           <CatalogCard key={item!.id} item={item!} lang={lang} selected={selectedIds.has(item!.id)} onToggle={onToggle} />
         ))}
