@@ -38,6 +38,7 @@ export function TierCards({
         {options.map((o, i) => {
           const items = o.itemIds.map((id) => itemById(id)).filter((x): x is NonNullable<typeof x> => Boolean(x));
           const hero = items[0];
+          const heroSrc = hero ? itemImage(hero) : "";
           const best = voting ? winner === o.label : options.length > 1 && i === options.length - 1;
           return (
             <motion.div
@@ -51,11 +52,11 @@ export function TierCards({
               }`}
             >
               <div className="relative h-32 w-full overflow-hidden">
-                {hero ? (
+                {heroSrc ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={itemImage(hero)} alt={tr(hero.name, lang)} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  <img src={heroSrc} alt={hero ? tr(hero.name, lang) : ""} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 ) : (
-                  <div className="h-full w-full" style={{ background: CATEGORY_GRADIENT[hero?.category ?? "venues"] }} />
+                  <div className="h-full w-full" style={{ background: CATEGORY_GRADIENT.venues }} />
                 )}
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
                 {best && (
