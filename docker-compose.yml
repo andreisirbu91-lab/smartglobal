@@ -1,0 +1,42 @@
+# Deploys the Event Concierge behind Coolify's existing Traefik (coolify-proxy).
+# Traefik on this host: certresolver "letsencrypt" (HTTP-01), entrypoints http/https.
+#
+#   ssh vps 'cd /opt/startglobal && docker compose up -d --build'
+#
+# Secrets come from /opt/startglobal/.env (not committed).
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: startglobal
+    restart: unless-stopped
+    environment:
+      LLMOK_API_KEY: ${LLMOK_API_KEY}
+      LLMOK_BASE_URL: ${LLMOK_BASE_URL:-https://burn.llmok.app/v1}
+      LLMOK_MODEL: ${LLMOK_MODEL:-gpt-5.4-mini}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-https://startglobal.rzs-it.ro}
+    volumes:
+      - ./data:/app/.data
+    networks:
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      # HTTP -> HTTPS redirect
+      - traefik.http.routers.startglobal-http.entryPoints=http
+      - traefik.http.routers.startglobal-http.rule=Host(`startglobal.rzs-it.ro`)
+      - traefik.http.routers.startglobal-http.middlewares=startglobal-redirect
+      - traefik.http.middlewares.startglobal-redirect.redirectscheme.scheme=https
+      # HTTPS with Let's Encrypt
+      - traefik.http.routers.startglobal-https.entryPoints=https
+      - traefik.http.routers.startglobal-https.rule=Host(`startglobal.rzs-it.ro`)
+      - traefik.http.routers.startglobal-https.tls=true
+      - traefik.http.routers.startglobal-https.tls.certresolver=letsencrypt
+      - traefik.http.services.startglobal.loadbalancer.server.port=3000
+
+networks:
+  coolify:
+    external: true

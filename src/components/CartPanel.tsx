@@ -1,0 +1,242 @@
+"use client";
+
+import { useState } from "react";
+import type { CategoryId, Lang, OrderState, Quote } from "@/lib/types";
+import { canConfirm, isValidPromo } from "@/lib/engine";
+import { itemById } from "@/lib/catalog";
+import { CATEGORY_GRADIENT, itemImage } from "@/lib/images";
+import { money, ron, tr } from "@/lib/format";
+import { t } from "@/lib/i18n";
+import { Button, Hairline, Pill } from "./ui";
+
+export function CartPanel({
+  order,
+  quote,
+  lang,
+  confirming,
+  honoreeLabel,
+  onSetGraduates,
+  onSetGuests,
+  onApplyPromo,
+  onRemove,
+  onSetContact,
+  onConfirm,
+  onShare,
+}: {
+  order: OrderState;
+  quote: Quote;
+  lang: Lang;
+  confirming: boolean;
+  honoreeLabel: string;
+  onSetGraduates: (n: number) => void;
+  onSetGuests: (n: number) => void;
+  onApplyPromo: (code: string) => void;
+  onRemove: (id: string) => void;
+  onSetContact: (c: { name?: string; email?: string; phone?: string }) => void;
+  onConfirm: () => void;
+  onShare: () => void;
+}) {
+  const [promo, setPromo] = useState("");
+  const ready = canConfirm(order);
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-display text-xl text-ink">{t("yourPackage", lang)}</h2>
+        <Pill tone="ink">{quote.lines.length}</Pill>
+      </div>
+
+      {/* Attendee counters */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <Counter label={honoreeLabel} value={order.graduates} min={1} onChange={onSetGraduates} />
+        <Counter label={t("guests", lang)} value={order.guests} min={0} onChange={onSetGuests} />
+      </div>
+
+      <Hairline className="my-3" />
+
+      {/* Lines */}
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-thin">
+        {quote.lines.length === 0 ? (
+          <p className="py-8 text-center text-sm text-ink-soft">{t("empty", lang)}</p>
+        ) : (
+          <ul className="space-y-2">
+            {quote.lines.map((l) => (
+              <li key={l.itemId} className="animate-rise flex items-start gap-2.5 rounded-xl bg-ivory/60 px-2.5 py-2">
+                <LineThumb itemId={l.itemId} order={order} category={l.category} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13px] font-medium text-ink">{tr(l.name, lang)}</div>
+                  <div className="text-[11px] text-ink-soft">
+                    {money(l.unitPrice)} × {l.quantity}
+                    {l.savings ? (
+                      <span className="ml-1 text-wine">· {t("savings", lang)} {money(l.savings)}</span>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-display text-[15px] text-ink">{money(l.total)}</span>
+                  <button
+                    onClick={() => onRemove(l.itemId)}
+                    aria-label={t("remove", lang)}
+                    className="no-print grid h-5 w-5 place-items-center rounded-full text-ink-soft/60 transition hover:bg-wine/10 hover:text-wine"
+                  >
+                    ×
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <Hairline className="my-3" />
+
+      {/* Promo */}
+      <div className="no-print flex gap-2">
+        <input
+          value={promo}
+          onChange={(e) => setPromo(e.target.value)}
+          placeholder={t("promoPlaceholder", lang)}
+          className="min-w-0 flex-1 rounded-full border border-ink/10 bg-white px-4 py-2 text-sm outline-none focus:border-gold"
+        />
+        <Button variant="ghost" onClick={() => onApplyPromo(promo)}>
+          {t("apply", lang)}
+        </Button>
+      </div>
+      {promo && !isValidPromo(promo) && !order.promoCode && (
+        <p className="mt-1 text-[11px] text-wine">{t("promoInvalid", lang)}</p>
+      )}
+
+      {/* Totals */}
+      <div className="mt-3 space-y-1.5 text-sm">
+        <Row label={t("subtotal", lang)} value={money(quote.subtotal)} muted />
+        {quote.discounts.map((d) => (
+          <Row key={d.code} label={`− ${tr(d.label, lang)}`} value={`−${money(d.amount)}`} tone="wine" />
+        ))}
+        <Hairline className="my-1.5" />
+        <div className="flex items-center justify-between">
+          <span className="text-display text-lg text-ink">{t("total", lang)}</span>
+          <span className="text-display text-2xl text-gold-deep">{money(quote.total)}</span>
+        </div>
+        {quote.total > 0 && <div className="text-right text-[11px] text-ink-soft">{ron(quote.total)}</div>}
+        {order.context.budget ? <BudgetBar total={quote.total} budget={order.context.budget} lang={lang} /> : null}
+      </div>
+
+      {/* Contact + confirm */}
+      <div className="no-print mt-3 space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            value={order.contact?.name ?? ""}
+            onChange={(e) => onSetContact({ name: e.target.value })}
+            placeholder={t("contactName", lang)}
+            className="rounded-xl border border-ink/10 bg-white px-3 py-2 text-sm outline-none focus:border-gold"
+          />
+          <input
+            value={order.contact?.email ?? ""}
+            onChange={(e) => onSetContact({ email: e.target.value })}
+            placeholder={t("contactEmail", lang)}
+            className="rounded-xl border border-ink/10 bg-white px-3 py-2 text-sm outline-none focus:border-gold"
+          />
+        </div>
+        {!ready && <p className="text-center text-[11px] text-ink-soft">{t("needContact", lang)}</p>}
+        <Button variant="gold" className="w-full" disabled={!ready || confirming} onClick={onConfirm}>
+          {confirming ? t("confirming", lang) : `${t("confirm", lang)} · ${money(quote.total)}`}
+        </Button>
+        {quote.lines.length > 0 && (
+          <Button variant="ghost" className="w-full" onClick={onShare}>
+            💬 {t("sharePackage", lang)}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LineThumb({ itemId, order, category }: { itemId: string; order: OrderState; category: CategoryId }) {
+  const [ok, setOk] = useState(true);
+  const ol = order.lines.find((l) => l.itemId === itemId);
+  const item = itemById(itemId);
+  const src = ol?.custom?.image ?? (item ? itemImage(item) : "");
+  if (src && ok) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} onError={() => setOk(false)} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" />;
+  }
+  return <div className="h-9 w-9 shrink-0 rounded-lg" style={{ background: CATEGORY_GRADIENT[category] }} />;
+}
+
+function BudgetBar({ total, budget, lang }: { total: number; budget: number; lang: Lang }) {
+  const pct = budget > 0 ? Math.round((total / budget) * 100) : 0;
+  const over = total > budget;
+  const near = !over && pct >= 90;
+  const color = over ? "bg-wine" : near ? "bg-gold" : "bg-green-600";
+  return (
+    <div className="mt-2">
+      <div className="flex justify-between text-[10px] text-ink-soft">
+        <span>{lang === "ro" ? "Buget" : "Budget"} {money(budget)}</span>
+        <span className={over ? "font-medium text-wine" : ""}>
+          {over ? `+${money(total - budget)} ${lang === "ro" ? "peste" : "over"}` : `${pct}%`}
+        </span>
+      </div>
+      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-ink/10">
+        <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${Math.min(100, pct)}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function Counter({
+  label,
+  value,
+  min,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <div className="rounded-xl border border-ink/10 bg-white px-3 py-2">
+      <div className="text-[11px] uppercase tracking-wide text-ink-soft">{label}</div>
+      <div className="mt-1 flex items-center justify-between">
+        <button
+          onClick={() => onChange(Math.max(min, value - 1))}
+          className="grid h-7 w-7 place-items-center rounded-full border border-ink/10 text-ink-soft hover:border-gold hover:text-gold-deep"
+        >
+          −
+        </button>
+        <input
+          type="number"
+          min={min}
+          value={value || ""}
+          onChange={(e) => onChange(Math.max(min, parseInt(e.target.value || String(min), 10)))}
+          className="w-14 bg-transparent text-center text-display text-lg text-ink outline-none"
+        />
+        <button
+          onClick={() => onChange(value + 1)}
+          className="grid h-7 w-7 place-items-center rounded-full border border-ink/10 text-ink-soft hover:border-gold hover:text-gold-deep"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Row({
+  label,
+  value,
+  muted,
+  tone,
+}: {
+  label: string;
+  value: string;
+  muted?: boolean;
+  tone?: "wine";
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className={tone === "wine" ? "text-wine" : muted ? "text-ink-soft" : "text-ink"}>{label}</span>
+      <span className={tone === "wine" ? "text-wine" : muted ? "text-ink-soft" : "text-ink"}>{value}</span>
+    </div>
+  );
+}
