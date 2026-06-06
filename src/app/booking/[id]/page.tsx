@@ -90,10 +90,10 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                   <span className="text-ink">
                     {tr(l.name, lang)}
                     <span className="ml-1 text-ink-soft">
-                      ({money(l.unitPrice)} × {l.quantity})
+                      ({money(l.unitPrice, l.currency)} × {l.quantity})
                     </span>
                   </span>
-                  <span className="text-display text-ink">{money(l.total)}</span>
+                  <span className="text-display text-ink">{money(l.total, l.currency)}</span>
                 </li>
               ))}
             </ul>

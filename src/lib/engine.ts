@@ -284,7 +284,7 @@ function quantityFor(unit: string, state: OrderState, lineQty?: number): number 
   }
 }
 
-type Resolved = { name: QuoteLine["name"]; category: QuoteLine["category"]; unit: QuoteLine["unit"]; price: number; bundleOf?: string[] };
+type Resolved = { name: QuoteLine["name"]; category: QuoteLine["category"]; unit: QuoteLine["unit"]; price: number; bundleOf?: string[]; currency?: "EUR" | "RON" };
 
 function resolveLine(line: OrderState["lines"][number]): Resolved | null {
   if (line.custom) {
@@ -297,7 +297,7 @@ function resolveLine(line: OrderState["lines"][number]): Resolved | null {
   }
   const item = itemById(line.itemId);
   if (!item) return null;
-  return { name: item.name, category: item.category, unit: item.unit, price: item.price, bundleOf: item.bundleOf };
+  return { name: item.name, category: item.category, unit: item.unit, price: item.price, bundleOf: item.bundleOf, currency: item.currency };
 }
 
 export function quote(state: OrderState): Quote {
