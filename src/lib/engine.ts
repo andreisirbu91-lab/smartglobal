@@ -46,12 +46,19 @@ export function setEventType(state: OrderState, eventType: EventTypeId): OrderSt
   return { ...state, eventType, stepIndex: 0 };
 }
 
+/** Once an essential is captured, the question that asked for it is answered — drop it. */
+function answered(next: OrderState): OrderState {
+  delete next.choices;
+  delete next.tiers;
+  return next;
+}
+
 export function setGraduates(state: OrderState, count: number): OrderState {
-  return { ...state, graduates: clampInt(count, 1) };
+  return answered({ ...state, graduates: clampInt(count, 1) });
 }
 
 export function setGuests(state: OrderState, count: number): OrderState {
-  return { ...state, guests: clampInt(count, 0) };
+  return answered({ ...state, guests: clampInt(count, 0) });
 }
 
 export function setLanguage(state: OrderState, language: Lang): OrderState {
@@ -63,7 +70,7 @@ export function setContact(state: OrderState, contact: Contact): OrderState {
 }
 
 export function setContext(state: OrderState, context: Partial<EventContext>): OrderState {
-  return { ...state, context: { ...state.context, ...context } };
+  return answered({ ...state, context: { ...state.context, ...context } });
 }
 
 export function setSpotlight(state: OrderState, ids: string[]): OrderState {
