@@ -154,6 +154,8 @@ export type EventContext = {
   date?: string;
   style?: string;
   budget?: number;
+  /** Free-form preferences/vibe the agent should remember and tailor to (e.g. "hip-hop fans, tight budget, outdoor"). */
+  notes?: string;
 };
 
 export type OrderState = {

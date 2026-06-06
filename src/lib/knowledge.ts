@@ -52,6 +52,26 @@ const KB: Entry[] = [
     ro: "Star Global Academic — contact@starglobal.ro, 0748 031 166, @starglobalacademic. Pot ruga și un coordonator să revină pe email.",
   },
   {
+    keys: ["expensive", "scump", "scumpa", "scumpă", "prea mult", "too much", "nu ne permitem", "budget too", "costa mult"],
+    en: "Totally fair. Two ways to fit any budget: (1) I trim to the essentials and keep the price down — Base pack + the must-haves still make a beautiful day; (2) you split it — a 20% deposit now secures the date, the rest before the event. And group bookings (3+ grads) already take money off. Tell me your ceiling and I'll build the best possible event under it.",
+    ro: "Foarte corect. Două căi ca să intre în orice buget: (1) reduc la esențial și țin prețul jos — Base + must-have-urile fac tot o zi frumoasă; (2) îl împărțiți — avans 20% acum blochează data, restul înainte de eveniment. Iar rezervările de grup (3+ absolvenți) au deja reducere. Spune-mi plafonul și construiesc cel mai bun eveniment sub el.",
+  },
+  {
+    keys: ["think", "gandesc", "gândesc", "mai vedem", "later", "not sure", "nu stiu", "nu știu", "ezit", "decide"],
+    en: "No pressure — but popular dates and top artists book fast, so I'd lock the date with the refundable deposit and keep refining the rest together. Want me to email you this exact package so you (and the class) can review and decide? I just need a name and email.",
+    ro: "Fără presiune — dar datele bune și artiștii de top se ocupă repede, așa că aș bloca data cu avansul și rafinăm restul împreună. Vreți să vă trimit pe email exact acest pachet, ca să-l revedeți (și clasa) și să decideți? Îmi trebuie doar un nume și un email.",
+  },
+  {
+    keys: ["just venue", "doar locatia", "doar locația", "only venue", "doar sala", "numai locatia"],
+    en: "We can start with just the venue, sure. But the magic (and the savings) come from the package — photo, gown, diploma and the session are already inside it, so it's far better value than booking each separately. Want me to show what the full Base pack adds for not much more?",
+    ro: "Putem porni doar cu locația, sigur. Dar magia (și economia) vin din pachet — foto, robă, diplomă și ședința foto sunt deja incluse, deci e mult mai avantajos decât separat. Vă arăt ce adaugă pachetul Base complet pentru foarte puțin în plus?",
+  },
+  {
+    keys: ["compare", "diferenta", "diferența", "difference", "vs", "expert vs vip", "base vs", "care e mai bun"],
+    en: "Quick compare (per graduate): Base (125) = gown, cap, diploma, photo session. Expert (245) = all that + photobooth, 360, livestream, 4K film, medals, stage & event planner. VIP (320) = all of Expert + Graduation Village, prosecco van, bars, live DJ. Most ~100-grad classes pick Expert as the sweet spot; VIP is for a festival-level show.",
+    ro: "Comparație rapidă (per absolvent): Base (125) = robă, tocă, diplomă, ședință foto. Expert (245) = tot + photobooth, 360, livestream, film 4K, medalii, scenă & event planner. VIP (320) = tot din Expert + Graduation Village, prosecco van, baruri, DJ live. Majoritatea claselor de ~100 aleg Expert ca sweet-spot; VIP e pentru un show de nivel festival.",
+  },
+  {
     keys: ["discount", "reducere", "offer", "oferta", "ofertă", "promo"],
     en: "Group bookings (3+ graduates) get an automatic discount, and promo codes (e.g. GRAD2026, EARLYBIRD) apply on top. Partner perks: festival discounts (UNTOLD, Neversea), free sunbeds, coffee and more.",
     ro: "Rezervările de grup (3+ absolvenți) au discount automat, iar codurile promo (ex. GRAD2026, EARLYBIRD) se aplică în plus. Beneficii parteneri: reduceri la festivaluri (UNTOLD, Neversea), șezlonguri gratuite, cafea și altele.",

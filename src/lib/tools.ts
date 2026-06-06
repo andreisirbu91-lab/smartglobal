@@ -48,14 +48,15 @@ export const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "set_context",
-      description: "Save the event context as you learn it: city/area (REQUIRED before searching venues), approximate date, style/vibe, and total budget in EUR.",
+      description: "Save the event context as you learn it: city/area (REQUIRED before searching venues), approximate date, style/vibe, total budget in RON, and notes (any stated preferences/vibe to remember and tailor to).",
       parameters: {
         type: "object",
         properties: {
           city: { type: "string", description: "City or area, e.g. 'Constanta'." },
           date: { type: "string", description: "Approximate date, free text." },
           style: { type: "string", description: "Vibe/style, e.g. 'seaside, intimate'." },
-          budget: { type: "number", description: "Total budget in EUR." },
+          budget: { type: "number", description: "Total budget in RON." },
+          notes: { type: "string", description: "Preferences to remember & tailor to, e.g. 'hip-hop fans, tight budget, wants it outdoor'. Append, don't overwrite." },
         },
       },
     },
@@ -331,6 +332,10 @@ export async function executeTool(
       if (args.date != null && String(args.date).trim()) ctx.date = String(args.date).trim();
       if (args.style != null && String(args.style).trim()) ctx.style = String(args.style).trim();
       if (args.budget != null && Number(args.budget) > 0) ctx.budget = Number(args.budget);
+      if (args.notes != null && String(args.notes).trim()) {
+        const prev = state.context.notes ? state.context.notes + "; " : "";
+        ctx.notes = (prev + String(args.notes).trim()).slice(0, 400);
+      }
       return ok(setContext(state, ctx));
     }
 
