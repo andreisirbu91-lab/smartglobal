@@ -59,14 +59,14 @@ function extractJson(text: string): unknown {
 
 export async function proposePackage(state: OrderState, preferences?: string): Promise<PackageProposal> {
   const items = CATALOG.filter((i) => i.eventTypes.length === 0 || (state.eventType && i.eventTypes.includes(state.eventType)));
-  const list = items.map((i) => `${i.id} | ${i.name.en} | ${i.category} | €${i.price} ${i.unit}${i.popular ? " | popular" : ""}`).join("\n");
+  const list = items.map((i) => `${i.id} | ${i.name.en} | ${i.category} | ${i.price} ${i.currency === "EUR" ? "EUR" : "RON"} ${i.unit}${i.popular ? " | popular" : ""}`).join("\n");
 
-  const system = `You are a senior event-planning specialist. Given an event, headcount and budget, you assemble ONE COMPLETE, well-rounded package that covers EVERYTHING an event of this type needs — not just a few items. (The real venue is booked separately from live listings, so do NOT include a venue id, but cover everything else.) MUST-HAVE essentials that you must ALWAYS include and NEVER skip: the dinner/banquet MENU and PHOTO (photo/video). List these FIRST (pick the cheapest photo/menu option if the budget is tight) so they always survive the budget. Then the album/USB keepsakes, the gown/cap and DIPLOMAS for graduations, a welcome drink, music/DJ, décor, cake, and 1-2 delightful extras — ordered most-essential to least. A package without a photo is wrong. Respect the budget — per_guest items multiply by guests, per_graduate by honorees, flat are one-off; the package total must stay within budget (build UP TO it, never over). Return ONLY JSON: {"itemIds": string[], "note": string}. Use ONLY ids from the catalog. The note is one short, warm sentence.`;
+  const system = `You assemble ONE COMPLETE graduation package that fits the budget. The CORE is a graduation PACKAGE — you MUST include EXACTLY ONE of: sga_base (125/grad) / sga_expert (245/grad) / sga_vip (320/grad). Pick the HIGHEST tier whose total (price × graduates) still leaves room for a couple of extras inside the budget. The package ALREADY includes the photo session, photography, gown, cap and diploma — so do NOT add separate photo/gown/diploma items. After the package, if budget allows, add IN THIS ORDER: a yearbook album (album_2030 else album_2020), a custom cap (toca_digital), an afterparty (sga_afterparty), then 1-2 nice extras (candy_bar / prosecco_bar). Add the banquet (sga_banquet, 625/grad) only if the budget is clearly large enough. RULES: never add an album cover (album_plush/leather) without an album; never replace the package with loose items like a lone welcome_cocktail or DJ; a graduation package without sga_base/expert/vip is WRONG. Order itemIds PACKAGE FIRST, then album, cap, extras. Most prices are RON; artists (art_*) are in EUR — avoid them unless the budget is very large. Respect the budget: per_graduate × graduates, per_guest × guests, flat once; total within budget (build UP TO it, never over). Return ONLY JSON: {"itemIds": string[], "note": string} using catalog ids. The note is one short, warm sentence.`;
 
   const user = `Event: ${state.eventType}
 Honorees: ${state.graduates}
 Guests: ${state.guests}
-Budget (EUR): ${state.context.budget ?? "flexible"}
+Budget (RON): ${state.context.budget ?? "flexible"}
 City: ${state.context.city ?? "?"}
 Customer preferences: ${preferences ?? "none stated"}
 
