@@ -35,6 +35,8 @@ export type CategoryId =
   | "transport"
   | "beauty"
   | "coordination"
+  | "logistics"
+  | "lodging"
   | "print"
   | "invitations"
   | "favors"

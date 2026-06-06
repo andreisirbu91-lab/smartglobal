@@ -74,9 +74,12 @@ export function setContext(state: OrderState, context: Partial<EventContext>): O
 }
 
 export function setSpotlight(state: OrderState, ids: string[]): OrderState {
-  const valid = ids.filter((id) => itemById(id));
-  const next = { ...state, spotlight: valid };
-  if (valid.length > 0) { delete next.discovery; delete next.choices; delete next.tiers; } // active surface
+  // Enforce a SINGLE category per recommendation set — never mix categories.
+  const items = ids.map((id) => itemById(id)).filter((i): i is NonNullable<typeof i> => Boolean(i));
+  const cat0 = items[0]?.category;
+  const sameCat = items.filter((i) => i.category === cat0).map((i) => i.id);
+  const next = { ...state, spotlight: sameCat };
+  if (sameCat.length > 0) { delete next.discovery; delete next.choices; delete next.tiers; } // active surface
   return next;
 }
 

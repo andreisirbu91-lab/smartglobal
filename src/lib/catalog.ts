@@ -133,6 +133,8 @@ export const CATEGORIES: Category[] = [
   { id: "transport", name: { en: "Transport", ro: "Transport" }, icon: "🚗" },
   { id: "beauty", name: { en: "Hair & Makeup", ro: "Coafură & Machiaj" }, icon: "💄" },
   { id: "coordination", name: { en: "Coordination", ro: "Coordonare" }, icon: "📋" },
+  { id: "logistics", name: { en: "Logistics", ro: "Logistică" }, icon: "🛡️" },
+  { id: "lodging", name: { en: "Accommodation", ro: "Cazare" }, icon: "🏨" },
   { id: "print", name: { en: "Personalized & Print", ro: "Personalizate & Print" }, icon: "👕" },
   { id: "invitations", name: { en: "Invitations", ro: "Invitații" }, icon: "✉️" },
   { id: "favors", name: { en: "Favors", ro: "Mărturii" }, icon: "🎁" },
@@ -371,6 +373,26 @@ export const CATALOG: CatalogItem[] = [
     name: { en: "LED Screen & Projector", ro: "Ecran LED & Proiector" }, description: { en: "Big LED screen / projector for photos, slideshows and live feed.", ro: "Ecran LED mare / proiector pentru poze, slideshow și transmisie live." } }),
   mk({ id: "late_snacks", category: "catering", eventTypes: [W, U, H], unit: "per_guest", price: 12,
     name: { en: "Late-night Snacks", ro: "Gustări de Noapte" }, description: { en: "Midnight bites to keep the party going, per guest.", ro: "Gustări de la miezul nopții ca să țină petrecerea, per invitat." } }),
+
+  // ===== ACCOMMODATION, LOGISTICS, LIVESTREAM, PREMIUM BAR, GIFTS =====
+  mk({ id: "guest_accommodation", category: "lodging", eventTypes: ALL, unit: "flat", price: 1500,
+    name: { en: "Guest Accommodation Block", ro: "Cazare Invitați (bloc camere)" }, description: { en: "Negotiated block of hotel rooms for out-of-town guests.", ro: "Bloc de camere de hotel negociat pentru invitații din afara orașului." } }),
+  mk({ id: "security_staff", category: "logistics", eventTypes: ALL, unit: "flat", price: 400,
+    name: { en: "Security Staff", ro: "Pază & Securitate" }, description: { en: "Professional door & floor security for the event.", ro: "Agenți de pază profesioniști la intrare și în sală." } }),
+  mk({ id: "valet_parking", category: "logistics", eventTypes: [W], unit: "flat", price: 350,
+    name: { en: "Valet Parking", ro: "Valet Parking" }, description: { en: "Valet service so guests arrive stress-free.", ro: "Serviciu de valet ca invitații să ajungă fără stres." } }),
+  mk({ id: "generator_climate", category: "logistics", eventTypes: ALL, unit: "flat", price: 600,
+    name: { en: "Generator & Heating/Cooling", ro: "Generator & Încălzire/Răcire" }, description: { en: "Backup power plus heating or cooling for outdoor venues.", ro: "Curent de rezervă plus încălzire sau răcire pentru spații exterioare." } }),
+  mk({ id: "kids_corner", category: "logistics", eventTypes: [W], unit: "flat", price: 400,
+    name: { en: "Kids' Corner & Babysitting", ro: "Colț de Copii & Babysitting" }, description: { en: "Supervised play area so parents can enjoy the night.", ro: "Zonă de joacă supravegheată ca părinții să se bucure de seară." } }),
+  mk({ id: "event_insurance", category: "logistics", eventTypes: ALL, unit: "flat", price: 200,
+    name: { en: "Event Insurance", ro: "Asigurare Eveniment" }, description: { en: "Cover for cancellation, weather and liability.", ro: "Acoperire pentru anulare, vreme și răspundere civilă." } }),
+  mk({ id: "livestream", category: "videography", eventTypes: ALL, unit: "flat", price: 500,
+    name: { en: "Live Stream", ro: "Transmisie Live" }, description: { en: "HD live stream so family abroad can watch in real time.", ro: "Transmisie live HD ca familia din străinătate să urmărească în timp real." } }),
+  mk({ id: "bar_premium", category: "bar", eventTypes: [W, U], unit: "per_guest", price: 30,
+    name: { en: "Premium Bar — Signature Cocktails", ro: "Bar Premium — Cocktailuri Signature" }, description: { en: "Mixologist with a signature cocktail menu, per guest.", ro: "Mixolog cu meniu de cocktailuri signature, per invitat." } }),
+  mk({ id: "parent_gifts", category: "favors", eventTypes: [W], unit: "flat", price: 250,
+    name: { en: "Gifts for Parents & Godparents", ro: "Cadouri Părinți & Nași" }, description: { en: "Curated thank-you gifts for parents and godparents.", ro: "Cadouri de mulțumire pentru părinți și nași." } }),
 ];
 
 // --- Lookups ---------------------------------------------------------------

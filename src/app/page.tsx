@@ -362,10 +362,12 @@ export default function Home() {
     );
   }
 
-  /** Answer a choice card; deterministically capture unambiguous values (date). */
+  /** Answer a choice card; capture a date only when it's a CONCRETE day (has a digit),
+   *  so a vague season like "Toamna"/"Summer" goes to the agent to propose real dates. */
   function answerChoice(label: string) {
     const cur = orderRef.current;
-    const base = cur.choices?.input === "date" ? setContext(cur, { date: label }) : cur;
+    const concreteDate = cur.choices?.input === "date" && /\d/.test(label);
+    const base = concreteDate ? setContext(cur, { date: label }) : cur;
     send(label, base);
   }
 
