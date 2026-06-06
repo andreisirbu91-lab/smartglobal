@@ -114,23 +114,29 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
 
           {!isDraft && (
             <>
-              {/* Deposit (demo SmartBill) */}
+              {/* Checkout (demo Stripe / SmartBill) */}
               <div className="no-print rounded-2xl border border-gold/25 bg-gold/5 p-4 text-center">
-                {booking.paid ? (
+                {booking.paymentMode ? (
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-green-700">✓ {tr(L.depositPaid, lang)}</p>
+                    <p className="text-sm font-medium text-green-700">
+                      ✓ {booking.paymentMode === "full"
+                        ? (lang === "ro" ? "Plătit integral" : "Paid in full")
+                        : booking.paymentMode === "deposit"
+                          ? (lang === "ro" ? `Avans 20% plătit (${money(booking.amountPaid ?? 0)})` : `Deposit 20% paid (${money(booking.amountPaid ?? 0)})`)
+                          : (lang === "ro" ? "Factură trimisă — de achitat prin transfer" : "Invoice sent — pay by bank transfer")}
+                    </p>
                     {booking.invoice && (
                       <p className="text-[12px] text-ink-soft">
-                        🧾 {lang === "ro" ? "Factură SmartBill" : "SmartBill invoice"} {booking.invoice.series} nr. {booking.invoice.number} · {money(booking.invoice.deposit)}
+                        🧾 {lang === "ro" ? "Factură SmartBill" : "SmartBill invoice"} {booking.invoice.series} nr. {booking.invoice.number}
                         {" · "}{new Date(booking.invoice.issuedAt).toLocaleDateString(lang === "ro" ? "ro-RO" : "en-GB")}
                       </p>
                     )}
                   </div>
                 ) : (
                   <>
-                    <p className="mb-2 text-[13px] text-ink-soft">{tr(L.depositNote, lang)}</p>
+                    <p className="mb-2 text-[13px] text-ink-soft">{lang === "ro" ? "Finalizează plata: avans 20%, integral pe card, sau pe factură." : "Check out: 20% deposit, full by card, or on invoice."}</p>
                     <Link href={`/pay/${booking.id}`} className="btn-gold inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
-                      💳 {tr(L.payDeposit, lang)} · {money(Math.round(booking.total * 0.2))}
+                      💳 {lang === "ro" ? "Mergi la plată" : "Go to checkout"}
                     </Link>
                   </>
                 )}

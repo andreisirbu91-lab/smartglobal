@@ -8,8 +8,8 @@ type Entry = { keys: string[]; en: string; ro: string };
 const KB: Entry[] = [
   {
     keys: ["payment", "pay", "deposit", "avans", "plata", "plată", "smartbill", "factura", "factură", "invoice"],
-    en: "A 20% deposit secures the date; the balance is due before the event. Payment & invoicing go through SmartBill (a proforma invoice is issued automatically). Bank transfer or card.",
-    ro: "Un avans de 20% rezervă data; restul se achită înainte de eveniment. Plata și facturarea se fac prin SmartBill (factura proformă se emite automat). Transfer bancar sau card.",
+    en: "Three ways to pay at checkout: (1) 20% deposit by card now, rest before the event; (2) full payment by card (Stripe); (3) full on invoice by bank transfer (pay later). A SmartBill invoice is issued automatically either way. The deposit secures your date.",
+    ro: "Trei moduri de plată la checkout: (1) avans 20% pe card acum, restul înainte de eveniment; (2) plată integrală pe card (Stripe); (3) integral pe factură prin transfer bancar (plată ulterioară). Factura SmartBill se emite automat în orice variantă. Avansul vă blochează data.",
   },
   {
     keys: ["minimum", "min", "minim", "cati", "câți", "participants", "absolventi", "absolvenți", "how many"],

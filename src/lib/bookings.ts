@@ -20,10 +20,15 @@ export type BookingRecord = {
   language: string;
   status: string;
   paid?: boolean;
-  /** Simulated SmartBill invoice issued on deposit payment. */
+  /** How they paid: 20% deposit by card, full by card, or full on invoice (bank transfer). */
+  paymentMode?: "deposit" | "full" | "invoice";
+  amountPaid?: number;
+  /** Simulated SmartBill invoice issued at checkout. */
   invoice?: { series: string; number: number; issuedAt: string; deposit: number };
   created_at: string;
 };
+
+export type PaymentMode = "deposit" | "full" | "invoice";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -60,21 +65,29 @@ export function buildInvoice(rec: BookingRecord): NonNullable<BookingRecord["inv
   return { series: "SGA", number: hashNum(rec.ref || rec.id), issuedAt: new Date().toISOString(), deposit: Math.round(rec.total * 0.2) };
 }
 
-/** Mark paid and issue the SmartBill invoice. Returns the invoice for the receipt. */
-export async function markPaid(id: string): Promise<BookingRecord["invoice"] | null> {
+/** Record a payment (deposit / full / invoice) and issue the SmartBill invoice. */
+export async function recordPayment(id: string, mode: PaymentMode = "deposit") {
   const rec = await getBooking(id);
   if (!rec) return null;
   const invoice = rec.invoice ?? buildInvoice(rec);
+  const amountPaid = mode === "full" ? rec.total : mode === "deposit" ? Math.round(rec.total * 0.2) : 0;
+  const paid = mode !== "invoice"; // invoice = pay later by transfer
+  const status = mode === "full" ? "paid" : mode === "deposit" ? "deposit_paid" : "invoice_sent";
+  const patch = { paid, status, paymentMode: mode, amountPaid, invoice };
   if (supabase) {
-    await supabase.from("bookings").update({ paid: true, status: "paid", invoice }).eq("id", id);
-    return invoice;
+    await supabase.from("bookings").update(patch).eq("id", id);
+  } else {
+    Object.assign(rec, patch);
+    await mkdir(DATA_DIR, { recursive: true });
+    await writeFile(fileFor(id), JSON.stringify(rec), "utf8");
   }
-  rec.paid = true;
-  rec.status = "paid";
-  rec.invoice = invoice;
-  await mkdir(DATA_DIR, { recursive: true });
-  await writeFile(fileFor(id), JSON.stringify(rec), "utf8");
-  return invoice;
+  return { invoice, amountPaid, mode, status };
+}
+
+/** Back-compat: deposit payment. */
+export async function markPaid(id: string): Promise<BookingRecord["invoice"] | null> {
+  const r = await recordPayment(id, "deposit");
+  return r?.invoice ?? null;
 }
 
 export async function getBooking(id: string): Promise<BookingRecord | null> {
