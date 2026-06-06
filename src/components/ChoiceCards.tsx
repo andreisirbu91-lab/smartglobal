@@ -31,20 +31,20 @@ export function ChoiceCards({
         </motion.h3>
       )}
 
-      {/* Typed input for numbers (graduates/guests) and dates */}
-      {input === "number" && (
+      {/* Typed input for numbers (graduates/guests), free text (e.g. another city) and dates */}
+      {(input === "number" || input === "text") && (
         <div className="flex items-end gap-2">
           <input
-            type="number"
-            min={1}
+            type={input === "number" ? "number" : "text"}
+            min={input === "number" ? 1 : undefined}
             value={val}
             onChange={(e) => setVal(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && val) onPick(val); }}
-            placeholder={lang === "ro" ? "scrie numărul…" : "type the number…"}
-            className="card-soft w-40 rounded-xl px-4 py-3 text-lg outline-none focus:border-gold"
+            onKeyDown={(e) => { if (e.key === "Enter" && val.trim()) onPick(val); }}
+            placeholder={input === "number" ? (lang === "ro" ? "scrie numărul…" : "type the number…") : (lang === "ro" ? "scrie aici… (ex. alt oraș)" : "type here… (e.g. another city)")}
+            className={`card-soft rounded-xl px-4 py-3 text-base outline-none focus:border-gold ${input === "number" ? "w-40 text-lg" : "flex-1"}`}
             autoFocus
           />
-          <button onClick={() => val && onPick(val)} className="btn-gold rounded-xl px-5 py-3 text-sm font-semibold">OK</button>
+          <button onClick={() => val.trim() && onPick(val)} className="btn-gold rounded-xl px-5 py-3 text-sm font-semibold">OK</button>
         </div>
       )}
       {input === "date" && (
@@ -91,11 +91,10 @@ export function ChoiceCards({
         </div>
       )}
 
-      {!input && (
-        <button onClick={onOther} className="inline-flex items-center gap-2 rounded-full border border-dashed border-gold/40 bg-gold/[0.04] px-4 py-2 text-sm text-ink-soft transition hover:border-gold hover:text-ink">
-          ✍️ {lang === "ro" ? "Altceva… (scrie)" : "Other… (type)"}
-        </button>
-      )}
+      {/* Always offer a free-text escape — type your own answer in the chat below. */}
+      <button onClick={onOther} className="inline-flex items-center gap-2 rounded-full border border-dashed border-gold/40 bg-gold/[0.04] px-4 py-2 text-[13px] text-ink-soft transition hover:border-gold hover:text-ink">
+        ✍️ {lang === "ro" ? "Altceva? Scrie în chat 👇" : "Something else? Type in the chat 👇"}
+      </button>
     </div>
   );
 }

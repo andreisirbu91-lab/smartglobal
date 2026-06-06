@@ -95,13 +95,14 @@ check("wedding: date captured", C(o).get("date"))
 check("wedding: progressed to >=3 items", len(o.get("lines", [])) >= 3, "%s items" % len(o.get("lines", [])))
 check("wedding: surface never went 3x-stale", not _three_repeats(trail), "same question 3x in a row")
 
-# 2) Grad-uni, build-for-me, no budget — fills a full package.
-print("[2] grad-uni · build for me · no budget")
+# 2) Grad-uni, build-for-me (venue first, then no budget) — fills a full package incl. venue.
+print("[2] grad-uni · venue first · build for me")
 o, _ = run("grad_university", [
     ("Cluj-Napoca", None), ("80 absolventi 200 invitati", None), ("20 iunie 2026", "20 iunie 2026"),
-    ("✨ Construiește tu pachetul", None), ("fără buget, fă-l superb", None),
+    ("fără buget, fă-l superb", None), ("alege prima sală", None), ("✨ Construiește tu pachetul", None),
 ])
 check("grad: date captured", C(o).get("date"))
+check("grad: venue chosen", any(l["itemId"].startswith("venue:") for l in o.get("lines", [])), "no venue")
 check("grad: full package (>=8 items)", len(o.get("lines", [])) >= 8, "%s items" % len(o.get("lines", [])))
 
 # 3) Grad-hs, vague + out-of-order answers.
@@ -125,20 +126,21 @@ o, _ = run("custom", [
 check("custom: city captured", C(o).get("city"))
 check("custom: discovered+added places", len(o.get("lines", [])) >= 1, "%s items" % len(o.get("lines", [])))
 
-# 5) Wedding with a budget — running total stays sane (<= 3x budget sanity).
-print("[5] wedding · with budget")
+# 5) Wedding with a budget — venue first, then build, package incl. venue.
+print("[5] wedding · with budget · venue first")
 o, _ = run("wedding", [
     ("Iași", None), ("100", None), ("10 octombrie 2026", "10 octombrie 2026"),
-    ("am buget 15000 euro", None), ("✨ Construiește tu pachetul", None), ("fără buget extra", None),
+    ("am buget 15000 euro", None), ("alege prima sală", None), ("✨ Construiește tu pachetul", None),
 ])
 check("budget: captured", C(o).get("budget"), "budget=%s" % C(o).get("budget"))
+check("budget: venue chosen", any(l["itemId"].startswith("venue:") for l in o.get("lines", [])), "no venue")
 check("budget: package built", len(o.get("lines", [])) >= 6, "%s items" % len(o.get("lines", [])))
 
 # 6) English flow works end-to-end on essentials.
 print("[6] wedding · English")
 o, _ = run("wedding", [
     ("Bucharest", None), ("120", None), ("5 June 2026", "5 June 2026"),
-    ("build it for me", None), ("no budget, make it stunning", None),
+    ("no budget, make it stunning", None), ("pick the first venue", None), ("build it for me", None),
 ], en=True)
 check("EN: date captured", C(o).get("date"))
 check("EN: package built", len(o.get("lines", [])) >= 6, "%s items" % len(o.get("lines", [])))

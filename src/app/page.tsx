@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { CatalogItem, Contact, EventTypeId, Lang, OrderState, Venue } from "@/lib/types";
+import type { CatalogItem, Contact, Discount, EventTypeId, Lang, OrderState, Venue } from "@/lib/types";
 import { CATALOG, eventById, itemById } from "@/lib/catalog";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -527,6 +527,10 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
                 stage={checkout}
                 dealStatus={dealStatus}
                 suggested={checkout === "ask" ? suggestedExtra(order) : undefined}
+                discounts={quote.discounts}
+                upsells={(order.spotlight ?? [])
+                  .map((id) => itemById(id))
+                  .filter((i): i is CatalogItem => Boolean(i) && !order.lines.some((l) => l.itemId === i!.id))}
                 total={quote.total}
                 lang={lang}
                 confirming={confirming}
@@ -556,6 +560,8 @@ function CheckoutModal({
   stage,
   dealStatus,
   suggested,
+  discounts,
+  upsells,
   total,
   lang,
   confirming,
@@ -567,6 +573,8 @@ function CheckoutModal({
   stage: "ask" | "searching" | "deal";
   dealStatus: string;
   suggested?: CatalogItem;
+  discounts: Discount[];
+  upsells: CatalogItem[];
   total: number;
   lang: Lang;
   confirming: boolean;
@@ -628,14 +636,44 @@ function CheckoutModal({
         )}
 
         {stage === "deal" && (
-          <div className="space-y-4 py-2">
+          <div className="space-y-4 py-1">
             <div className="rounded-2xl border border-gold/30 bg-gold/[0.06] p-4 text-center">
               <div className="text-3xl">🎉</div>
               <p className="mt-2 text-sm text-ink">
-                {ro ? "Am deblocat un discount special — vezi oferta în chat." : "Unlocked a special discount — see the offer in the chat."}
+                {ro ? "Am deblocat un discount special pentru pachetul tău!" : "Unlocked a special discount on your package!"}
               </p>
+              {discounts.length > 0 && (
+                <div className="mt-2 space-y-0.5">
+                  {discounts.map((d) => (
+                    <div key={d.code} className="text-[13px] text-gold-deep">
+                      {tr(d.label, lang)} · <span className="font-semibold">−{money(d.amount)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <p className="mt-1 text-display text-2xl text-gold-deep">{money(total)}</p>
             </div>
+
+            {upsells.length > 0 && (
+              <div className="rounded-2xl border border-gold/20 p-3">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-deep/80">
+                  🎁 {ro ? "Adaugă și primești extra" : "Add & unlock extras"}
+                </p>
+                <div className="space-y-2">
+                  {upsells.slice(0, 3).map((it) => (
+                    <div key={it.id} className="flex items-center justify-between gap-2 rounded-xl bg-ivory/60 px-3 py-2">
+                      <span className="min-w-0 truncate text-[13px] text-ink">
+                        {tr(it.name, lang)} <span className="text-ink-soft">· {money(it.price)}</span>
+                      </span>
+                      <button onClick={() => onAdd(it.id)} className="btn-gold shrink-0 rounded-full px-3 py-1 text-[12px] font-semibold">
+                        ➕ {ro ? "Adaugă" : "Add"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <button onClick={onFinalize} disabled={confirming} className="btn-gold w-full rounded-full py-3 text-sm font-semibold disabled:opacity-50">
               {confirming ? "…" : (ro ? `Finalizează · ${money(total)}` : `Finalize · ${money(total)}`)}
             </button>
