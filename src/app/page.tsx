@@ -1068,8 +1068,8 @@ function Landing({
   const [text, setText] = useState("");
   const examples =
     lang === "ro"
-      ? ["Nuntă în Constanța, 150 invitați, ~20.000€", "Banchet de liceu în Cluj, 60 elevi", "Weekend romantic la munte, ~800€"]
-      : ["A wedding in Constanța, 150 guests, ~€20k", "Highschool banquet in Cluj, 60 students", "A romantic mountain weekend, ~€800"];
+      ? ["Banchet de liceu în Constanța, 100 de absolvenți", "Absolvire facultate, 80 de absolvenți, ~30.000 RON", "Festivitate de liceu cu artist live"]
+      : ["Highschool banquet in Constanța, 100 graduates", "University graduation, 80 grads, ~30,000 RON", "Highschool ceremony with a live artist"];
   return (
     <div className="mx-auto w-full max-w-2xl py-14 sm:py-20">
       <div className="animate-rise flex flex-col items-center text-center">
@@ -1096,7 +1096,7 @@ function Landing({
             }
           }}
           rows={2}
-          placeholder={lang === "ro" ? "ex. O nuntă în Constanța pentru 150 de invitați, buget ~20.000€…" : "e.g. A wedding in Constanța for 150 guests, budget ~€20k…"}
+          placeholder={lang === "ro" ? "ex. Banchet de liceu în Constanța, 100 de absolvenți, buget ~30.000 RON…" : "e.g. A highschool banquet in Constanța, 100 graduates, ~30,000 RON…"}
           className="card-soft min-h-[60px] flex-1 resize-none rounded-2xl px-4 py-3 text-base outline-none focus:border-gold"
         />
         <button
