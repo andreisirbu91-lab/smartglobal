@@ -32,29 +32,29 @@ export function TierCards({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
               onClick={() => onPick(o.itemIds)}
-              className={`group relative flex flex-col gap-2 rounded-xl border bg-white p-4 text-left transition hover:bg-ivory/50 ${
-                best ? "border-ink/30" : "border-ink/10 hover:border-ink/30"
+              className={`group relative flex flex-col gap-2 rounded-xl border bg-white p-4 text-left shadow-[0_1px_2px_rgba(35,34,32,.04),0_16px_38px_-28px_rgba(35,34,32,.28)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_46px_-26px_rgba(169,133,69,.42)] ${
+                best ? "border-gold/50 ring-1 ring-gold/20" : "border-ink/8 hover:border-gold/45"
               }`}
             >
               {best && (
-                <span className="absolute right-3 top-3 rounded-full border border-ink/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink-soft">
+                <span className="absolute right-3 top-3 rounded-full border border-gold/40 bg-gold/8 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gold-deep">
                   {ro ? "Recomandat" : "Recommended"}
                 </span>
               )}
-              <span className="text-display pr-20 text-[15px] leading-tight text-ink">{o.label}</span>
+              <span className="text-display pr-24 text-[15px] leading-tight text-ink">{o.label}</span>
               <ul className="space-y-0.5">
                 {items.map((it) => (
                   <li key={it.id} className="flex items-start gap-1.5 text-[12px] leading-snug text-ink-soft">
-                    <span className="text-ink-soft/50">✓</span> {tr(it.name, lang)}
+                    <span className="text-gold-deep/70">✓</span> {tr(it.name, lang)}
                   </li>
                 ))}
               </ul>
               <div className="mt-auto flex items-end justify-between pt-1">
                 <div>
-                  <div className="text-display text-lg text-ink">{money(o.total)}</div>
+                  <div className="text-display text-lg text-gold-deep">{money(o.total)}</div>
                   <div className="text-[9px] text-ink-soft/70">{ron(o.total)}</div>
                 </div>
-                <span className="text-[12px] font-medium text-ink-soft opacity-0 transition group-hover:opacity-100">{ro ? "Alege" : "Choose"} →</span>
+                <span className="text-[12px] font-medium text-gold-deep opacity-0 transition group-hover:opacity-100">{ro ? "Alege" : "Choose"} →</span>
               </div>
             </motion.button>
           );

@@ -538,8 +538,19 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   const show = (which: Tab) => (tab === which ? "flex" : "hidden") + " lg:flex";
 
   // The agent's current surface, rendered inline in the conversation under the chat.
+  const skipCategory = (
+    <button
+      onClick={() => send(lang === "ro" ? "sări peste această categorie, mergem mai departe" : "skip this category, let's move on")}
+      className="text-[13px] text-ink-soft underline-offset-2 transition hover:text-ink hover:underline"
+    >
+      {lang === "ro" ? "Sari peste această categorie →" : "Skip this category →"}
+    </button>
+  );
   const surface = order.tiers?.options?.length ? (
-    <TierCards question={order.tiers.question} options={order.tiers.options} lang={lang} onPick={addTier} />
+    <div className="space-y-3">
+      <TierCards question={order.tiers.question} options={order.tiers.options} lang={lang} onPick={addTier} />
+      {skipCategory}
+    </div>
   ) : order.choices?.options?.length ? (
     <ChoiceCards
       question={order.choices.question}
@@ -550,13 +561,16 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
       onOther={openOther}
     />
   ) : order.spotlight && order.spotlight.length > 0 ? (
-    <SpotlightPanel
-      ids={order.spotlight}
-      lang={lang}
-      selectedIds={new Set(order.lines.map((l) => l.itemId))}
-      onToggle={handleToggle}
-      onDismiss={() => mut(clearSpotlight)}
-    />
+    <div className="space-y-3">
+      <SpotlightPanel
+        ids={order.spotlight}
+        lang={lang}
+        selectedIds={new Set(order.lines.map((l) => l.itemId))}
+        onToggle={handleToggle}
+        onDismiss={() => mut(clearSpotlight)}
+      />
+      {skipCategory}
+    </div>
   ) : order.discovery?.venues?.length ? (
     <VenueStep
       query=""

@@ -72,9 +72,9 @@ export function ChoiceCards({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
               onClick={() => onPick(o.label)}
-              className="group flex min-h-[84px] flex-col items-start gap-1.5 rounded-xl border border-ink/10 bg-white p-3.5 text-left transition hover:border-ink/30 hover:bg-ivory/50"
+              className="group flex min-h-[92px] flex-col items-start gap-1.5 rounded-xl border border-ink/8 bg-white p-4 text-left shadow-[0_1px_2px_rgba(35,34,32,.04),0_14px_34px_-26px_rgba(35,34,32,.26)] transition hover:-translate-y-0.5 hover:border-gold/45 hover:shadow-[0_20px_44px_-24px_rgba(169,133,69,.4)]"
             >
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-ink/[0.06] text-[11px] font-medium text-ink-soft">{i + 1}</span>
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-gold/12 text-[11px] font-semibold text-gold-deep">{i + 1}</span>
               <span className="text-display text-[15px] leading-tight text-ink">{o.label}</span>
               {o.desc && <span className="text-[12px] leading-snug text-ink-soft">{o.desc}</span>}
             </motion.button>

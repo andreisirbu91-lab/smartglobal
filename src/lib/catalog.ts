@@ -295,8 +295,6 @@ export const CATALOG: CatalogItem[] = [
     includes: { en: ["Gown, cap & tassel, per graduate", "Faculty colors, exact sizing", "Cleaned & pressed", "Delivery + collection"], ro: ["Togă, tocă & ciucure, per absolvent", "Culorile facultății, mărime exactă", "Curățate & călcate", "Livrare + ridicare"] } }),
   mk({ id: "hs_gown", category: "attire", eventTypes: [H], unit: "per_graduate", price: 30, popular: true,
     name: { en: "Cap, Gown & Sash", ro: "Tocă, Robă & Eșarfă" }, description: { en: "Ceremony set personalized with the school logo.", ro: "Set de ceremonie personalizat cu sigla liceului." } }),
-  mk({ id: "uni_ticket", category: "tickets", eventTypes: [U], unit: "per_graduate", price: 35,
-    name: { en: "Ceremony Seat", ro: "Loc la Ceremonie" }, description: { en: "Reserved seat at the ceremony.", ro: "Loc rezervat la ceremonie." } }),
 
   // ===== PRINT / PERSONALIZED =====
   mk({ id: "print_tshirts", category: "print", eventTypes: [U, H], unit: "per_graduate", price: 15, popular: true,
