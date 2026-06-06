@@ -656,6 +656,16 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   const canContinue = step?.kind === "basics" && step.field === "location" ? Boolean(order.context.city) : true;
   const paneH = "h-[calc(100dvh-150px)] lg:h-[calc(100dvh-104px)]";
   const show = (which: Tab) => (tab === which ? "flex" : "hidden") + " lg:flex";
+  // Mobile: swipe left → cart, right → chat.
+  const touchX = useRef<number | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => { touchX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    touchX.current = null;
+    if (Math.abs(dx) < 60) return;
+    setTab(dx < 0 ? "cart" : "chat");
+  };
 
   // The agent's current surface, rendered inline in the conversation under the chat.
   const voting =
@@ -779,10 +789,17 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
           {/* Mobile tab bar */}
           <div className="no-print mb-3 flex gap-1 rounded-full border border-ink/10 bg-white p-1 text-sm lg:hidden">
             <TabBtn active={tab === "chat"} onClick={() => setTab("chat")}>{lang === "ro" ? "Conversație" : "Conversation"}</TabBtn>
-            <TabBtn active={tab === "cart"} onClick={() => setTab("cart")}>{money(quote.total)}</TabBtn>
+            <TabBtn active={tab === "cart"} onClick={() => setTab("cart")}>
+              <span className="inline-flex items-center gap-1.5">
+                {lang === "ro" ? "Coș" : "Cart"}
+                {quote.lines.length > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1.5 text-[11px] font-semibold text-white">{quote.lines.length}</span>}
+                · {money(quote.total)}
+              </span>
+            </TabBtn>
           </div>
+          <p className="no-print mb-2 text-center text-[11px] text-ink-soft/60 lg:hidden">{lang === "ro" ? "← glisează între conversație și coș →" : "← swipe between conversation and cart →"}</p>
 
-          <div className="grid flex-1 gap-4 lg:grid-cols-12">
+          <div className="grid flex-1 gap-4 lg:grid-cols-12" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             {/* Conversation — chat + inline choice/venue/product cards in ONE column */}
             <section className={`card-soft ${show("chat")} ${paneH} flex-col p-4 lg:col-span-8`}>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-3">

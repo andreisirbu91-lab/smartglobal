@@ -30,8 +30,8 @@ export function Chat({
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loading, surface]);
 
   useEffect(() => {
     if (focusSignal) inputRef.current?.focus();
