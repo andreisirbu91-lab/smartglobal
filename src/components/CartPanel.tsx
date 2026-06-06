@@ -37,6 +37,7 @@ export function CartPanel({
   onShare: () => void;
 }) {
   const [promo, setPromo] = useState("");
+  const [detailId, setDetailId] = useState<string | null>(null);
   const ready = canConfirm(order);
 
   return (
@@ -62,14 +63,16 @@ export function CartPanel({
           <ul className="space-y-2">
             {quote.lines.map((l) => (
               <li key={l.itemId} className="animate-rise flex items-start gap-2.5 rounded-xl bg-ivory/60 px-2.5 py-2">
-                <LineThumb itemId={l.itemId} order={order} category={l.category} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px] font-medium text-ink">{tr(l.name, lang)}</div>
-                  <div className="text-[11px] text-ink-soft">
-                    {money(l.unitPrice)} × {l.quantity}
-                    {l.savings ? (
-                      <span className="ml-1 text-wine">· {t("savings", lang)} {money(l.savings)}</span>
-                    ) : null}
+                <div onClick={() => setDetailId(l.itemId)} className="flex min-w-0 flex-1 cursor-pointer items-start gap-2.5" title={t("more", lang)}>
+                  <LineThumb itemId={l.itemId} order={order} category={l.category} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[13px] font-medium text-ink underline-offset-2 hover:underline">{tr(l.name, lang)}</div>
+                    <div className="text-[11px] text-ink-soft">
+                      {money(l.unitPrice)} × {l.quantity}
+                      {l.savings ? (
+                        <span className="ml-1 text-wine">· {t("savings", lang)} {money(l.savings)}</span>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -143,9 +146,60 @@ export function CartPanel({
         </Button>
         {quote.lines.length > 0 && (
           <Button variant="ghost" className="w-full" onClick={onShare}>
-            💬 {t("sharePackage", lang)}
+            {t("sharePackage", lang)}
           </Button>
         )}
+      </div>
+
+      <CartItemModal id={detailId} order={order} lang={lang} onClose={() => setDetailId(null)} />
+    </div>
+  );
+}
+
+function CartItemModal({ id, order, lang, onClose }: { id: string | null; order: OrderState; lang: Lang; onClose: () => void }) {
+  if (!id) return null;
+  const ol = order.lines.find((l) => l.itemId === id);
+  const item = itemById(id);
+  const name = item ? tr(item.name, lang) : ol?.custom ? tr(ol.custom.name, lang) : id;
+  const desc = item ? (item.long ? tr(item.long, lang) : tr(item.description, lang)) : ol?.custom?.description ? tr(ol.custom.description, lang) : "";
+  const src = ol?.custom?.image ?? (item ? itemImage(item) : "");
+  const unit = item?.unit ?? ol?.custom?.unit ?? "flat";
+  const price = item?.price ?? ol?.custom?.price ?? 0;
+  const meta = (ol?.custom?.meta ?? {}) as Record<string, unknown>;
+  const unitNote =
+    unit === "per_guest"
+      ? (lang === "ro" ? "Preț per invitat — se înmulțește cu numărul de invitați." : "Per guest — multiplied by your guest count.")
+      : unit === "per_graduate"
+        ? (lang === "ro" ? "Preț per absolvent — se înmulțește cu numărul de absolvenți." : "Per graduate — multiplied by the number of graduates.")
+        : (lang === "ro" ? "Preț fix, o singură dată." : "Flat price, one-off.");
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        {src && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={src} alt={name} className="h-44 w-full object-cover" />
+        )}
+        <div className="space-y-2.5 p-5">
+          <h3 className="text-display text-xl text-ink">{name}</h3>
+          {desc && <p className="text-sm leading-relaxed text-ink-soft">{desc}</p>}
+          {item?.includes && (
+            <ul className="space-y-1">
+              {item.includes[lang].map((b, i) => (
+                <li key={i} className="flex gap-2 text-[13px] text-ink"><span className="text-gold-deep">✓</span> {b}</li>
+              ))}
+            </ul>
+          )}
+          {typeof meta.address === "string" && <p className="text-[12px] text-ink-soft">{meta.address}</p>}
+          <p className="rounded-lg bg-gold/[0.07] px-3 py-2 text-[12px] text-ink-soft">{unitNote}</p>
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-display text-xl text-gold-deep">{money(price)}{unit !== "flat" ? <span className="text-[12px] text-ink-soft">/{unit === "per_guest" ? t("perGuest", lang) : lang === "ro" ? "absolvent" : "graduate"}</span> : null}</span>
+            {typeof meta.mapsUrl === "string" && (
+              <a href={meta.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] text-ink-soft underline-offset-2 hover:text-ink hover:underline">Maps ↗</a>
+            )}
+          </div>
+          <button onClick={onClose} className="btn-gold mt-2 w-full py-2.5 text-sm font-medium">{lang === "ro" ? "Închide" : "Close"}</button>
+        </div>
       </div>
     </div>
   );
