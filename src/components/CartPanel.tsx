@@ -160,6 +160,13 @@ export function CartPanel({
             {t("sharePackage", lang)}
           </Button>
         )}
+        {quote.lines.length > 0 && (
+          <p className="text-center text-[11px] leading-snug text-ink-soft/80">
+            {lang === "ro"
+              ? "Notă: unele produse (artiști, locații, date specifice) se confirmă în scurt timp, după o verificare rapidă cu echipa."
+              : "Note: some items (artists, venues, specific dates) are confirmed shortly after a quick check with our team."}
+          </p>
+        )}
       </div>
 
       <CartItemModal id={detailId} order={order} lang={lang} onClose={() => setDetailId(null)} />

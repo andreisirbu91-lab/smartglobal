@@ -294,6 +294,33 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order, messages, sessionId]);
 
+  // Voting: the cart follows the winning tier — winner's items stay, the other
+  // options in the same stack drop out, so the shared cart reflects the vote.
+  useEffect(() => {
+    if (!sessionId || collabActive <= 1) return;
+    const group = order.tiers?.options;
+    if (!group || group.length < 2) return;
+    let win: (typeof group)[number] | null = null;
+    let best = 0;
+    let tie = false;
+    for (const o of group) {
+      const c = votes[o.label]?.length ?? 0;
+      if (c > best) { best = c; win = o; tie = false; }
+      else if (c === best && c > 0) tie = true;
+    }
+    if (!win || best === 0 || tie) return;
+    const winIds = new Set(win.itemIds);
+    const siblingIds = group.flatMap((o) => o.itemIds).filter((id) => !winIds.has(id));
+    setOrder((o) => {
+      let n = o;
+      let changed = false;
+      for (const id of siblingIds) if (n.lines.some((l) => l.itemId === id)) { n = toggleItem(n, id); changed = true; }
+      for (const id of win!.itemIds) if (!n.lines.some((l) => l.itemId === id)) { n = toggleItem(n, id); changed = true; }
+      return changed ? n : o;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [votes, order.tiers, sessionId, collabActive]);
+
   function stop() {
     if (timerRef.current) clearTimeout(timerRef.current);
     pendingRef.current = [];
