@@ -69,7 +69,7 @@ export function setContext(state: OrderState, context: Partial<EventContext>): O
 export function setSpotlight(state: OrderState, ids: string[]): OrderState {
   const valid = ids.filter((id) => itemById(id));
   const next = { ...state, spotlight: valid };
-  if (valid.length > 0) { delete next.discovery; delete next.choices; } // this is now the active surface
+  if (valid.length > 0) { delete next.discovery; delete next.choices; delete next.tiers; } // active surface
   return next;
 }
 
@@ -81,7 +81,7 @@ export function clearSpotlight(state: OrderState): OrderState {
 
 export function setDiscovery(state: OrderState, query: string, venues: import("./types").Venue[]): OrderState {
   const next = { ...state, discovery: { query, venues } };
-  if (venues.length > 0) { delete next.spotlight; delete next.choices; } // active surface
+  if (venues.length > 0) { delete next.spotlight; delete next.choices; delete next.tiers; } // active surface
   return next;
 }
 
@@ -100,12 +100,41 @@ export function setChoices(
   const next = { ...state, choices: { question, options, input } };
   delete next.spotlight;
   delete next.discovery;
+  delete next.tiers;
   return next;
 }
 
 export function clearChoices(state: OrderState): OrderState {
   const next = { ...state };
   delete next.choices;
+  return next;
+}
+
+export function setTiers(
+  state: OrderState,
+  question: string | undefined,
+  raw: { label: string; itemIds: string[] }[]
+): OrderState {
+  const qty = (unit: string) =>
+    unit === "per_guest" ? Math.max(1, state.guests) : unit === "per_graduate" ? Math.max(1, state.graduates) : 1;
+  const options = (raw || [])
+    .map((t) => {
+      const ids = (t.itemIds || []).map((id) => itemById(id)).filter((i): i is NonNullable<typeof i> => Boolean(i));
+      const total = round2(ids.reduce((s, it) => s + it.price * qty(it.unit), 0));
+      return { label: String(t.label ?? "").slice(0, 70), itemIds: ids.map((i) => i.id), total };
+    })
+    .filter((o) => o.itemIds.length > 0)
+    .slice(0, 3);
+  const next = { ...state, tiers: { question, options } };
+  delete next.choices;
+  delete next.spotlight;
+  delete next.discovery;
+  return next;
+}
+
+export function clearTiers(state: OrderState): OrderState {
+  const next = { ...state };
+  delete next.tiers;
   return next;
 }
 
@@ -125,6 +154,7 @@ export function setStep(state: OrderState, stepIndex: number): OrderState {
   delete next.spotlight;
   delete next.discovery;
   delete next.choices;
+  delete next.tiers;
   return next;
 }
 export const nextStep = (s: OrderState) => setStep(s, s.stepIndex + 1);

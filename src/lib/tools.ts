@@ -12,6 +12,7 @@ import {
   setChoices,
   setContext,
   setDiscovery,
+  setTiers,
   setEventType,
   setGraduates,
   setGuests,
@@ -171,6 +172,32 @@ export const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
           },
         },
         required: ["options"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "recommend_tiers",
+      description: "Show 2-3 ESCALATING bundle tiers for ONE category as tappable cards — each tier CUMULATIVELY adds products: e.g. 'Photo-Video' / 'Photo-Video + Booth' / 'Photo-Video + Booth + Drone'; or 'Welcome cocktail' / '+ Breezers'; or 'Cap' / 'Cap + Gown' / 'Cap + Gown + Diplomas'. You pick which catalog items go in each tier; the engine prices them. Picking a tier adds ALL its items. Use this for service categories instead of listing single items.",
+      parameters: {
+        type: "object",
+        properties: {
+          question: { type: "string", description: "Short prompt, e.g. 'How much for the photo memories?'" },
+          tiers: {
+            type: "array",
+            description: "2-3 tiers, each CUMULATIVE (tier 2 = tier 1 + one more, tier 3 = tier 2 + one more).",
+            items: {
+              type: "object",
+              properties: {
+                label: { type: "string", description: "e.g. 'Photo-Video + Booth + Drone'" },
+                itemIds: { type: "array", items: { type: "string" }, description: "catalog ids included in this tier" },
+              },
+              required: ["label", "itemIds"],
+            },
+          },
+        },
+        required: ["tiers"],
       },
     },
   },
@@ -383,6 +410,16 @@ export async function executeTool(
       const input = ["number", "date", "text"].includes(String(args.input)) ? (String(args.input) as "number" | "date" | "text") : undefined;
       const next = setChoices(state, options, args.question ? String(args.question) : undefined, input);
       return { state: next, result: { ok: true, shown: options.map((o) => o.label), input } };
+    }
+
+    case "recommend_tiers": {
+      const raw = Array.isArray(args.tiers) ? args.tiers : [];
+      const tiers = raw.map((t: Record<string, unknown>) => ({
+        label: String(t?.label ?? ""),
+        itemIds: Array.isArray(t?.itemIds) ? (t.itemIds as unknown[]).map((x) => String(x)) : [],
+      }));
+      const next = setTiers(state, args.question ? String(args.question) : undefined, tiers);
+      return { state: next, result: { ok: true, tiers: next.tiers?.options.map((o) => ({ label: o.label, total: o.total })) } };
     }
 
     case "recommend_items": {

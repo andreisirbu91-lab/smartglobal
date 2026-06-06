@@ -6,11 +6,13 @@ import type { CatalogItem, Contact, Discount, EventTypeId, Lang, OrderState, Ven
 import { CATALOG, eventById, itemById } from "@/lib/catalog";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  addItem,
   addVenue,
   applyPromo,
   clearChoices,
   clearDiscovery,
   clearSpotlight,
+  clearTiers,
   emptyOrder,
   nextStep,
   prevStep,
@@ -28,6 +30,7 @@ import {
 import { CatalogCard } from "@/components/CatalogCard";
 import { SocialProof } from "@/components/SocialProof";
 import { ChoiceCards } from "@/components/ChoiceCards";
+import { TierCards } from "@/components/TierCards";
 import { money, tr } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { Chat, type ChatMessage } from "@/components/Chat";
@@ -100,6 +103,12 @@ export default function Home() {
   const [focusSignal, setFocusSignal] = useState(0);
   const [checkout, setCheckout] = useState<null | "ask" | "searching" | "deal">(null);
   const [dealStatus, setDealStatus] = useState("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [collabActive, setCollabActive] = useState(0);
+  const clientIdRef = useRef<string>("");
+  const sessionRevRef = useRef(0);
+  const adoptingRef = useRef(false);
+  const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
 
   function openOther() {
@@ -131,6 +140,92 @@ export default function Home() {
   useEffect(() => { orderRef.current = order; }, [order]);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
+  // --- Collaborative shared sessions (share a link → plan together live) ---
+  function adopt(d: { order?: OrderState; messages?: ChatMessage[]; rev: number; active?: number }) {
+    sessionRevRef.current = d.rev;
+    if (d.active != null) setCollabActive(d.active);
+    adoptingRef.current = true;
+    if (d.order) setOrder(d.order);
+    if (Array.isArray(d.messages) && d.messages.length) setMessages(d.messages);
+    setTimeout(() => { adoptingRef.current = false; }, 60);
+  }
+
+  async function joinSession(id: string) {
+    try {
+      const res = await fetch(`/api/session/${id}?clientId=${clientIdRef.current}`);
+      if (!res.ok) return;
+      adopt(await res.json());
+    } catch { /* ignore */ }
+  }
+
+  async function collaborate() {
+    let id = sessionId;
+    if (!id) {
+      try {
+        const res = await fetch("/api/session", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: orderRef.current, messages: messagesRef.current }),
+        });
+        const d = await res.json();
+        if (!d.id) return;
+        id = String(d.id);
+        setSessionId(id);
+        sessionRevRef.current = 1;
+        const url = new URL(window.location.href);
+        url.searchParams.set("s", id);
+        window.history.replaceState({}, "", url.toString());
+      } catch { return; }
+    }
+    const link = `${window.location.origin}/?s=${id}`;
+    const text = lang === "ro" ? "Hai să planificăm împreună evenimentul 🎉" : "Let's plan the event together 🎉";
+    if (navigator.share) { try { await navigator.share({ title: "Event Concierge", text, url: link }); return; } catch { /* fall through */ } }
+    try { await navigator.clipboard.writeText(link); } catch { /* ignore */ }
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${link}`)}`, "_blank");
+  }
+
+  // On mount: stable client id + auto-join a shared session from ?s=...
+  useEffect(() => {
+    clientIdRef.current =
+      typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+    const s = new URLSearchParams(window.location.search).get("s");
+    if (s) { setSessionId(s); joinSession(s); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Poll the shared session for remote changes + presence.
+  useEffect(() => {
+    if (!sessionId) return;
+    const iv = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/session/${sessionId}?clientId=${clientIdRef.current}`);
+        if (!res.ok) return;
+        const d = await res.json();
+        setCollabActive(d.active ?? 1);
+        if (d.rev > sessionRevRef.current && d.lastWriter !== clientIdRef.current) adopt(d);
+        else sessionRevRef.current = Math.max(sessionRevRef.current, d.rev);
+      } catch { /* ignore */ }
+    }, 2500);
+    return () => clearInterval(iv);
+  }, [sessionId]);
+
+  // Push local changes to the shared session (debounced; skip echoes of an adopt).
+  useEffect(() => {
+    if (!sessionId || adoptingRef.current) return;
+    if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+    pushTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/session/${sessionId}`, {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: orderRef.current, messages: messagesRef.current, clientId: clientIdRef.current }),
+        });
+        const d = await res.json();
+        if (d.rev) sessionRevRef.current = d.rev;
+        if (d.active != null) setCollabActive(d.active);
+      } catch { /* ignore */ }
+    }, 800);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order, messages, sessionId]);
+
   function stop() {
     if (timerRef.current) clearTimeout(timerRef.current);
     pendingRef.current = [];
@@ -151,18 +246,19 @@ export default function Home() {
     try {
       const data = await streamChat({ messages: [...messagesRef.current, { role: "user", content: instruction }], order: orderRef.current }, setStatus, ctrl.signal);
       if (data.assistantMessage) setMessages((m) => [...m, { role: "assistant", content: data.assistantMessage! }]);
-      // Adopt the agent's fresh surface — choice cards, recommendations OR discovered places.
+      // Adopt the agent's fresh surface — tiers, choice cards, recommendations OR discovered places.
+      const tiers = data.order?.tiers;
       const choices = data.order?.choices;
       const spotlight = data.order?.spotlight;
       const discovery = data.order?.discovery;
-      if (choices || spotlight || discovery) {
+      if (tiers || choices || spotlight || discovery) {
         setOrder((o) => {
           const n = { ...o };
-          if (choices) { n.choices = choices; delete n.spotlight; delete n.discovery; }
-          else {
-            if (spotlight) { n.spotlight = spotlight; delete n.choices; delete n.discovery; }
-            if (discovery) { n.discovery = discovery; delete n.choices; delete n.spotlight; }
-          }
+          delete n.tiers; delete n.choices; delete n.spotlight; delete n.discovery;
+          if (tiers) n.tiers = tiers;
+          else if (choices) n.choices = choices;
+          else if (spotlight) n.spotlight = spotlight;
+          else if (discovery) n.discovery = discovery;
           return n;
         });
         setTab("chat");
@@ -188,6 +284,15 @@ export default function Home() {
       const n = itemById(id)?.name[lang];
       if (n) queueReaction(`added "${n}"`);
     }
+  }
+
+  // Pick a bundle tier → add every item in it (skip ones already added) and move on.
+  function addTier(ids: string[]) {
+    const present = new Set(orderRef.current.lines.map((l) => l.itemId));
+    const toAdd = ids.filter((id) => !present.has(id));
+    setOrder((o) => { let n = clearTiers(o); for (const id of toAdd) n = addItem(n, id); return n; });
+    const names = toAdd.map((id) => itemById(id)?.name[lang]).filter(Boolean);
+    if (names.length) queueReaction(`added the bundle: ${names.map((n) => `"${n}"`).join(" + ")}`);
   }
 
   function handleSelectVenue(v: Venue) {
@@ -266,7 +371,7 @@ export default function Home() {
     setMessages(next);
     // The customer is answering — drop the previous question's cards immediately
     // so a stale surface never lingers a step behind the chat.
-    setOrder((o) => clearChoices(baseOrder ?? o));
+    setOrder((o) => clearTiers(clearChoices(baseOrder ?? o)));
     setLoading(true);
     setStatus(null);
     const ctrl = new AbortController();
@@ -430,7 +535,9 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   const show = (which: Tab) => (tab === which ? "flex" : "hidden") + " lg:flex";
 
   // The agent's current surface, rendered inline in the conversation under the chat.
-  const surface = order.choices?.options?.length ? (
+  const surface = order.tiers?.options?.length ? (
+    <TierCards question={order.tiers.question} options={order.tiers.options} lang={lang} onPick={addTier} />
+  ) : order.choices?.options?.length ? (
     <ChoiceCards
       question={order.choices.question}
       options={order.choices.options}
@@ -466,6 +573,8 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
         eventName={evt ? tr(evt.name, lang) : null}
         onHome={goHome}
         onToggleLang={toggleLang}
+        onCollaborate={collaborate}
+        collabActive={collabActive}
       />
 
       {!evt ? (
@@ -692,11 +801,15 @@ function Header({
   eventName,
   onHome,
   onToggleLang,
+  onCollaborate,
+  collabActive,
 }: {
   lang: Lang;
   eventName: string | null;
   onHome: () => void;
   onToggleLang: () => void;
+  onCollaborate: () => void;
+  collabActive: number;
 }) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-2 py-3 sm:py-4">
@@ -710,12 +823,32 @@ function Header({
           </button>
         )}
       </div>
-      <div className="no-print flex items-center rounded-full border border-ink/10 bg-white p-0.5 text-sm">
+      <div className="no-print flex items-center gap-2">
+        {eventName && (
+          <button
+            onClick={onCollaborate}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium transition ${
+              collabActive > 1 ? "border-green-500/40 bg-green-500/10 text-green-700" : "border-gold/30 bg-gold/8 text-gold-deep hover:bg-gold/15"
+            }`}
+            title={lang === "ro" ? "Planificați împreună" : "Plan together"}
+          >
+            {collabActive > 1 ? (
+              <>
+                <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500/50" /><span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" /></span>
+                {collabActive} {lang === "ro" ? "live" : "live"}
+              </>
+            ) : (
+              <>👥 {lang === "ro" ? "Invită clasa" : "Invite the class"}</>
+            )}
+          </button>
+        )}
+        <div className="flex items-center rounded-full border border-ink/10 bg-white p-0.5 text-sm">
         {(["en", "ro"] as const).map((l) => (
           <button key={l} onClick={() => l !== lang && onToggleLang()} className={`rounded-full px-3 py-1 font-medium transition ${lang === l ? "bg-ink text-ivory" : "text-ink-soft hover:text-ink"}`}>
             {l.toUpperCase()}
           </button>
         ))}
+        </div>
       </div>
     </header>
   );

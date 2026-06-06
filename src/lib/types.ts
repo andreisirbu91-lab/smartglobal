@@ -164,10 +164,15 @@ export type OrderState = {
   negotiatedPct?: number;
   /** Agent-driven multiple-choice question shown as cards in the middle. */
   choices?: { question?: string; options: ChoiceOption[]; input?: "number" | "date" | "text" };
+  /** Escalating bundle tiers for a category (engine-priced); picking one adds all its items. */
+  tiers?: { question?: string; options: TierOption[] };
   language: Lang;
 };
 
 export type ChoiceOption = { label: string; emoji?: string; desc?: string };
+
+/** One cumulative bundle tier: a label, the catalog item ids it includes, and the engine-computed total. */
+export type TierOption = { label: string; itemIds: string[]; total: number };
 
 export type QuoteLine = {
   itemId: string;

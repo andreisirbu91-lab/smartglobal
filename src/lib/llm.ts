@@ -30,6 +30,7 @@ function statusFor(tool: string, lang: string): string | null {
     search_venues: ["🔎 Caut locații potrivite…", "🔎 Finding the right venues…"],
     propose_package: ["🧩 Compun pachetul tău complet…", "🧩 Putting your full package together…"],
     recommend_items: ["✨ Aduc variante pe ecran…", "✨ Bringing options to your screen…"],
+    recommend_tiers: ["🎚️ Pregătesc pachete pe niveluri…", "🎚️ Building bundle tiers…"],
     add_item: ["➕ Adaug în pachet…", "➕ Adding to your package…"],
     add_place: ["➕ Adaug locul în plan…", "➕ Adding the place to your plan…"],
     select_venue: ["📍 Aleg locația…", "📍 Selecting the venue…"],
