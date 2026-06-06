@@ -376,7 +376,7 @@ export default function Home() {
     pendingRef.current = [];
     if (!labels.length) return;
     nudgeRef.current = 0;
-    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and PERSUASIVELY (2-3 sentences: acknowledge their pick, then PROPOSE the next thing with a planner's reasoning — the standout option, what it adds, and the price vs their budget). Then you MUST move the screen forward to a DIFFERENT category by calling **recommend_tiers** (cumulative tiers) for the NEXT not-yet-covered category — NEVER use recommend_items here, and never re-show a category in CATEGORIES ALREADY IN THE PACKAGE or the same set they just picked from. If a venue was chosen, go to the first service category. If every category is covered, ask for name+email to finalize. ALWAYS end by surfacing something new (recommend_tiers / discover_places / ask_choice). NEVER re-ask anything already set; do NOT re-add items already added.]`);
+    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and PERSUASIVELY (2-3 sentences: acknowledge their pick, then PROPOSE the next thing with a planner's reasoning — the standout option, what it adds, and the price vs their budget). Then you MUST move the screen forward to a DIFFERENT not-yet-covered category, choosing the RIGHT tool: recommend_tiers for product categories (cap, album, bars), or ask_choice (NO prices) for the artist GENRE. NEVER bundle mutually-exclusive variants in one tier (no album_2020+album_2030, no toca_digital+toca_painted) — those are ALTERNATIVES. Never re-show a category in CATEGORIES ALREADY IN THE PACKAGE or the same set they just picked from. If a venue was chosen, go to the first service category. If every category is covered, ask for name+email to finalize. ALWAYS end by surfacing something new (recommend_tiers / discover_places / ask_choice). NEVER re-ask anything already set; do NOT re-add items already added.]`);
   }
 
   /** Never let the flow stall: if a turn ended with nothing on screen, push the agent to continue. */
@@ -780,7 +780,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
             ? `${money(v.estPricePerGuest)}/${t("perGuest", lang)}`
             : v.estFlatPrice
               ? `${t("from", lang)} ${money(v.estFlatPrice)}`
-              : undefined,
+              : (lang === "ro" ? "Inclus în banchet" : "Included in banquet"),
           href: v.mapsUrl,
           images: v.photos,
           bullets: [
