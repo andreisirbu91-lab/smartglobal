@@ -187,6 +187,10 @@ export default function Home() {
   useEffect(() => {
     clientIdRef.current =
       typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+    // Default to Romanian for RO browsers (the customer can still toggle).
+    if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("ro")) {
+      setOrder((o) => setLanguage(o, "ro"));
+    }
     const s = new URLSearchParams(window.location.search).get("s");
     if (s) { setSessionId(s); joinSession(s); }
     // eslint-disable-next-line react-hooks/exhaustive-deps

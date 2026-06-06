@@ -38,9 +38,9 @@ export const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
     type: "function",
     function: {
-      name: "set_language",
-      description: "Set the interface language to match the language the customer is writing in.",
-      parameters: { type: "object", properties: { language: { type: "string", enum: ["en", "ro"] } }, required: ["language"] },
+      name: "set_language_DISABLED",
+      description: "DO NOT USE. Language is controlled by the customer (auto-detected + a manual toggle). Always reply in the current interface language; never change it yourself.",
+      parameters: { type: "object", properties: {}, required: [] },
     },
   },
   {

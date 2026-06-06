@@ -129,7 +129,10 @@ export const CATEGORIES: Category[] = [
   { id: "effects", name: { en: "Special Effects", ro: "Efecte Speciale" }, icon: "🎆" },
   { id: "decorations", name: { en: "Decorations", ro: "Decor" }, icon: "🎈" },
   { id: "photozone", name: { en: "Photo Zone", ro: "Zonă Foto" }, icon: "🖼️" },
-  { id: "rentals", name: { en: "Rentals", ro: "Închirieri" }, icon: "🪑" },
+  { id: "rentals", name: { en: "Rentals & AV", ro: "Închirieri & AV" }, icon: "🪑" },
+  { id: "transport", name: { en: "Transport", ro: "Transport" }, icon: "🚗" },
+  { id: "beauty", name: { en: "Hair & Makeup", ro: "Coafură & Machiaj" }, icon: "💄" },
+  { id: "coordination", name: { en: "Coordination", ro: "Coordonare" }, icon: "📋" },
   { id: "print", name: { en: "Personalized & Print", ro: "Personalizate & Print" }, icon: "👕" },
   { id: "invitations", name: { en: "Invitations", ro: "Invitații" }, icon: "✉️" },
   { id: "favors", name: { en: "Favors", ro: "Mărturii" }, icon: "🎁" },
@@ -336,6 +339,40 @@ export const CATALOG: CatalogItem[] = [
     name: { en: "Balloon Machine & Arch", ro: "Mașină de Baloane & Arcadă" }, description: { en: "Balloon machine and a themed balloon arch.", ro: "Mașină de baloane și arcadă tematică." } }),
   mk({ id: "grad_champagne", category: "bar", eventTypes: [U, H], unit: "per_guest", price: 7,
     name: { en: "Champagne & Biscuits", ro: "Șampanie & Pișcoturi" }, description: { en: "Welcome toast with champagne and biscuits, per guest.", ro: "Toast de bun-venit cu șampanie și pișcoturi, per invitat." } }),
+
+  // ===== TRANSPORT =====
+  mk({ id: "wed_limo", category: "transport", eventTypes: [W], unit: "flat", price: 600, popular: true,
+    name: { en: "Bridal Limousine", ro: "Limuzină pentru Miri" }, description: { en: "Chauffeured stretch limousine for the couple, decorated, a few hours.", ro: "Limuzină cu șofer pentru miri, decorată, câteva ore." } }),
+  mk({ id: "wed_vintage_car", category: "transport", eventTypes: [W], unit: "flat", price: 450,
+    name: { en: "Vintage Wedding Car", ro: "Mașină de Epocă" }, description: { en: "Classic vintage car with driver for the bridal entrance.", ro: "Mașină clasică de epocă, cu șofer, pentru intrarea mirilor." } }),
+  mk({ id: "guest_shuttle", category: "transport", eventTypes: ALL, unit: "flat", price: 500,
+    name: { en: "Guest Shuttle Bus", ro: "Transfer Invitați (autocar)" }, description: { en: "Coach transfer for guests between venue, church and hotel.", ro: "Autocar pentru invitați între locație, biserică și hotel." } }),
+  mk({ id: "private_transfer", category: "transport", eventTypes: ALL, unit: "flat", price: 250,
+    name: { en: "Private Transfer", ro: "Transfer Privat" }, description: { en: "Private chauffeured car for the hosts/VIPs.", ro: "Mașină privată cu șofer pentru gazde/VIP." } }),
+
+  // ===== HAIR & MAKEUP =====
+  mk({ id: "bridal_beauty", category: "beauty", eventTypes: [W], unit: "flat", price: 350, popular: true,
+    name: { en: "Bridal Hair & Makeup", ro: "Coafură & Machiaj Mireasă" }, description: { en: "Bride's hair + makeup on the day, with a prior trial session.", ro: "Coafură + machiaj mireasă în ziua Z, cu probă în prealabil." } }),
+  mk({ id: "party_beauty", category: "beauty", eventTypes: [W, U, H], unit: "per_graduate", price: 90,
+    name: { en: "Hair & Makeup", ro: "Coafură & Machiaj" }, description: { en: "Professional hair + makeup per honoree.", ro: "Coafură + machiaj profesional per protagonist." } }),
+
+  // ===== COORDINATION =====
+  mk({ id: "day_coordinator", category: "coordination", eventTypes: ALL, unit: "flat", price: 700,
+    name: { en: "Day-of Coordinator", ro: "Coordonator în Ziua Z" }, description: { en: "A planner who runs the whole event day so you relax — timeline, vendors, troubleshooting.", ro: "Un coordonator care conduce toată ziua evenimentului — program, furnizori, rezolvă orice." } }),
+
+  // ===== CEREMONY / FLORALS / AV / LATE-NIGHT =====
+  mk({ id: "officiant", category: "tickets", eventTypes: [W], unit: "flat", price: 300,
+    name: { en: "Ceremony Officiant", ro: "Oficiant Ceremonie" }, description: { en: "Celebrant for a personalized civil/symbolic ceremony.", ro: "Oficiant pentru o ceremonie civilă/simbolică personalizată." } }),
+  mk({ id: "bridal_bouquet", category: "decorations", eventTypes: [W], unit: "flat", price: 220,
+    name: { en: "Bridal Bouquet & Boutonnieres", ro: "Buchet Mireasă & Cocarde" }, description: { en: "Bride's bouquet plus boutonnieres for the groom & close family.", ro: "Buchetul miresei plus cocarde pentru mire și familia apropiată." } }),
+  mk({ id: "sound_lighting", category: "rentals", eventTypes: ALL, unit: "flat", price: 800, popular: true,
+    name: { en: "Sound & Lighting", ro: "Sonorizare & Lumini" }, description: { en: "Pro PA system + ambient/architectural lighting for the venue.", ro: "Sistem de sunet profesional + lumini ambientale/arhitecturale." } }),
+  mk({ id: "marquee_tent", category: "rentals", eventTypes: ALL, unit: "flat", price: 1500,
+    name: { en: "Event Marquee", ro: "Cort de Eveniment" }, description: { en: "Elegant tent/marquee for an outdoor celebration, with flooring.", ro: "Cort elegant pentru eveniment în aer liber, cu pardoseală." } }),
+  mk({ id: "av_screen", category: "rentals", eventTypes: ALL, unit: "flat", price: 400,
+    name: { en: "LED Screen & Projector", ro: "Ecran LED & Proiector" }, description: { en: "Big LED screen / projector for photos, slideshows and live feed.", ro: "Ecran LED mare / proiector pentru poze, slideshow și transmisie live." } }),
+  mk({ id: "late_snacks", category: "catering", eventTypes: [W, U, H], unit: "per_guest", price: 12,
+    name: { en: "Late-night Snacks", ro: "Gustări de Noapte" }, description: { en: "Midnight bites to keep the party going, per guest.", ro: "Gustări de la miezul nopții ca să țină petrecerea, per invitat." } }),
 ];
 
 // --- Lookups ---------------------------------------------------------------
