@@ -255,7 +255,7 @@ export default function Home() {
     const labels = pendingRef.current;
     pendingRef.current = [];
     if (!labels.length) return;
-    const instruction = `[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and briefly (1-2 sentences). If they CHOSE A VENUE/PLACE: acknowledge in ONE line and IMMEDIATELY move to the FIRST service category — call recommend_items (2-3 best add-ons like menu/photo/music) OR ask_choice for the next decision so the screen never goes empty. If they ADDED an item: acknowledge with one concrete detail AND immediately call recommend_items for the NEXT 1-2 complementary upgrades (or ask_choice the next category) — never end without a fresh surface. You MUST end this turn by calling a tool that puts something new on the screen (recommend_items, discover_places, or ask_choice). NEVER re-ask for anything already set. Do NOT re-add items already added.]`;
+    const instruction = `[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and briefly (1 short sentence). Then you MUST move the screen forward to a DIFFERENT category: call recommend_tiers for the NEXT not-yet-covered category (check CATEGORIES ALREADY IN THE PACKAGE — never re-show a category that's covered, and never re-show the same set they just picked from). If a venue was chosen, go to the first service category. If every category is covered, ask for name+email to finalize. ALWAYS end by surfacing something new (recommend_tiers / discover_places / ask_choice). NEVER re-ask anything already set; do NOT re-add items already added.]`;
     setLoading(true);
     setStatus(null);
     const ctrl = new AbortController();
@@ -296,7 +296,8 @@ export default function Home() {
 
   function handleToggle(id: string) {
     const present = orderRef.current.lines.some((l) => l.itemId === id);
-    setOrder((o) => toggleItem(o, id));
+    // On add: clear the current set so the screen refreshes; the agent then brings the next category.
+    setOrder((o) => (present ? toggleItem(o, id) : clearTiers(clearSpotlight(toggleItem(o, id)))));
     if (!present) {
       const n = itemById(id)?.name[lang];
       if (n) queueReaction(`added "${n}"`);

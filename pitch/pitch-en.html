@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Event Concierge — Pitch</title>
+<style>
+  :root{ --ivory:#f8f4ea; --card:#fffdf8; --ink:#262320; --soft:#6e685c; --gold:#b1904c; --goldd:#8a6c30; --line:rgba(138,108,48,.22); }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; background:#e9e3d4; color:var(--ink); font-family:"Inter",system-ui,Arial,sans-serif; }
+  .serif{ font-family:"Fraunces",Georgia,serif; letter-spacing:-.015em; }
+  .deck{ max-width:1100px; margin:0 auto; padding:24px; }
+  .slide{ position:relative; background:var(--ivory); border:1px solid var(--line); border-radius:14px;
+    width:100%; aspect-ratio:16/9; padding:54px 60px; margin:0 0 26px; overflow:hidden;
+    box-shadow:0 30px 60px -40px rgba(38,35,32,.5); display:flex; flex-direction:column; }
+  .kick{ font-size:12px; letter-spacing:.24em; text-transform:uppercase; color:var(--goldd); }
+  .rule{ width:46px; height:2px; background:var(--gold); margin:14px 0 22px; }
+  h1{ font-size:62px; line-height:1.02; margin:0; }
+  h2{ font-size:40px; line-height:1.05; margin:0 0 18px; }
+  h3{ font-size:21px; margin:0 0 6px; }
+  p,li{ font-size:18px; line-height:1.5; color:#3a362f; }
+  .soft{ color:var(--soft); }
+  .grid{ display:grid; gap:18px; }
+  .g2{ grid-template-columns:1fr 1fr; } .g3{ grid-template-columns:1fr 1fr 1fr; }
+  .box{ background:var(--card); border:1px solid var(--line); border-radius:11px; padding:18px 20px; }
+  .tag{ display:inline-block; background:rgba(177,144,76,.12); color:var(--goldd); border:1px solid var(--line);
+    border-radius:999px; padding:4px 12px; font-size:13px; font-weight:600; }
+  .pct{ font-family:"Fraunces",Georgia,serif; font-size:15px; color:var(--gold); font-weight:600; }
+  .foot{ position:absolute; bottom:22px; left:60px; right:60px; display:flex; justify-content:space-between;
+    font-size:12px; color:var(--soft); border-top:1px solid var(--line); padding-top:10px; }
+  .shot{ background:#efe9db; border:1px dashed var(--line); border-radius:10px; min-height:150px;
+    display:flex; align-items:center; justify-content:center; color:var(--soft); font-size:13px; text-align:center; padding:10px; }
+  .shot img{ width:100%; height:100%; object-fit:cover; border-radius:9px; }
+  .big{ font-size:34px; } ul{ margin:6px 0 0; padding-left:20px; } li{ margin:5px 0; }
+  .center{ justify-content:center; align-items:flex-start; }
+  @media print{
+    html,body{ background:#fff; }
+    .deck{ max-width:none; padding:0; }
+    .slide{ width:100%; height:100vh; aspect-ratio:auto; border:none; border-radius:0; margin:0;
+      box-shadow:none; page-break-after:always; }
+    @page{ size:1280px 720px; margin:0; }
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- COVER -->
+  <section class="slide center">
+    <div class="kick">Hack a Ton 2026 · Start Global · Graduation Concierge</div>
+    <div class="rule"></div>
+    <h1 class="serif">Event&nbsp;Concierge</h1>
+    <p class="big serif" style="margin-top:16px;max-width:760px">Book your whole event in a conversation — the agent assembles the package, fits the budget, and hands back a confirmed, itemized order.</p>
+    <p class="soft" style="margin-top:18px">Live demo: <b>startglobal.rzs-it.ro</b> · Bilingual EN/RO · Real venues via Google Places</p>
+    <div class="foot"><span>Event Concierge</span><span>1 / 9</span></div>
+  </section>
+
+  <!-- PROBLEM & IMPACT -->
+  <section class="slide">
+    <div class="kick">Problem &amp; Impact <span class="pct">· 20%</span></div><div class="rule"></div>
+    <h2 class="serif">Booking an event is a wall of clunky forms.</h2>
+    <div class="grid g2">
+      <div>
+        <p>A graduation, banquet or wedding means choosing from a pile of options — venue, gown, photos, video, menu, diplomas, after-party — across many vendors and spreadsheets. <b>Nobody fills those forms happily.</b></p>
+        <p>A <b>conversation</b> is how people actually decide. And these events are rarely decided alone — a whole class or both families weigh in.</p>
+      </div>
+      <div class="box">
+        <h3 class="serif">Who wins</h3>
+        <ul>
+          <li><b>Students, couples, organizers</b> — minutes instead of weeks.</li>
+          <li><b>Venues &amp; vendors</b> — qualified, complete, budget-fit bookings.</li>
+          <li><b>Start Global</b> — a booking funnel for every academic event in Romania.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot"><span>Event Concierge</span><span>2 / 9</span></div>
+  </section>
+
+  <!-- SOLUTION & INNOVATION -->
+  <section class="slide">
+    <div class="kick">Solution &amp; Innovation <span class="pct">· 20%</span></div><div class="rule"></div>
+    <h2 class="serif">A conversational planner that actually builds the package.</h2>
+    <div class="grid g3">
+      <div class="box"><h3 class="serif">Claude-style choices</h3><p class="soft">The agent asks one question at a time and shows tappable cards — no forms. Always an "other / type" escape.</p></div>
+      <div class="box"><h3 class="serif">Escalating bundles</h3><p class="soft">Per category: Photo / +Booth / +Drone — one or two together, priced live. Pick a tier, move on.</p></div>
+      <div class="box"><h3 class="serif">Real venues</h3><p class="soft">Live Google Places within 50&nbsp;km — photos, ratings, prices — in a rotating carousel.</p></div>
+      <div class="box"><h3 class="serif">Group voting</h3><p class="soft">10–20 classmates vote on each option; the winner stays in the shared cart.</p></div>
+      <div class="box"><h3 class="serif">Budget-true</h3><p class="soft">"Build it for me within €5,000" fills up to the budget, never over, never dropping essentials.</p></div>
+      <div class="box"><h3 class="serif">Tasteful selling</h3><p class="soft">Smart upsells, group/promo discounts, a transparent "unlock a deal" close.</p></div>
+    </div>
+    <div class="foot"><span>Event Concierge</span><span>3 / 9</span></div>
+  </section>
+
+  <!-- WORKING DEMO -->
+  <section class="slide">
+    <div class="kick">Working demo <span class="pct">· 25%</span></div><div class="rule"></div>
+    <h2 class="serif">Live, end-to-end, on real data.</h2>
+    <div class="grid g2" style="grid-template-columns:1.1fr .9fr">
+      <div class="shot"><img src="screens/flow.png" alt="" onerror="this.parentNode.textContent='[ screenshot: conversation + choice cards + live cart ]'"></div>
+      <div>
+        <ul>
+          <li>Describe the event → agent captures city, headcount, date, budget.</li>
+          <li>Picks a <b>real venue</b> from Google Places.</li>
+          <li>Builds the package category by category (or auto-builds in budget).</li>
+          <li>Confirm → <b>persisted booking</b> + itemized summary + demo deposit + proforma invoice + shareable link.</li>
+        </ul>
+        <p class="tag">Try it now: startglobal.rzs-it.ro</p>
+      </div>
+    </div>
+    <div class="foot"><span>Event Concierge</span><span>4 / 9</span></div>
+  </section>
+
+  <!-- SCREENSHOTS -->
+  <section class="slide">
+    <div class="kick">The product</div><div class="rule"></div>
+    <div class="grid g3" style="flex:1">
+      <div class="shot"><img src="screens/venues.png" alt="" onerror="this.parentNode.textContent='[ venue carousel ]'"></div>
+      <div class="shot"><img src="screens/tiers.png" alt="" onerror="this.parentNode.textContent='[ escalating bundle tiers ]'"></div>
+      <div class="shot"><img src="screens/booking.png" alt="" onerror="this.parentNode.textContent='[ confirmed itemized order ]'"></div>
+    </div>
+    <div class="foot"><span>Event Concierge</span><span>5 / 9</span></div>
+  </section>
+
+  <!-- TECH & ARCHITECTURE -->
+  <section class="slide">
+    <div class="kick">Technology &amp; architecture <span class="pct">· 15%</span></div><div class="rule"></div>
+    <h2 class="serif">The LLM orchestrates; deterministic code owns the money.</h2>
+    <div class="grid g2">
+      <div>
+        <ul>
+          <li><b>Next.js 16 + React 19 + TypeScript + Tailwind</b>, streaming NDJSON chat.</li>
+          <li><b>Claude Sonnet 4.6</b> via LLMok, an OpenAI-compatible tool-calling loop.</li>
+          <li><b>Tools</b>: ask_choice, recommend_tiers, search_venues / discover_places (Google Places), add/remove, propose_package, negotiate_discount…</li>
+          <li><b>Deterministic engine</b> computes every price/discount — the model never invents numbers.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3 class="serif">Robust agent design</h3>
+        <ul>
+          <li>State digest tells the agent what's captured → no re-asks.</li>
+          <li>Hard budget cap enforced in code.</li>
+          <li><b>Self-improvement loop</b>: every turn logged → an observer agent finds failures → a 6-scenario regression suite gates each deploy.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot"><span>Event Concierge</span><span>6 / 9</span></div>
+  </section>
+
+  <!-- PITCH & COMMUNICATION -->
+  <section class="slide center">
+    <div class="kick">Pitch &amp; communication <span class="pct">· 10%</span></div><div class="rule"></div>
+    <h2 class="serif" style="max-width:820px">"A graduation in Cluj, 80 of us, June, €5,000."</h2>
+    <p class="big" style="max-width:780px">One sentence in. A complete, confirmed, itemized event out — venue, menu, gown, diplomas, photo, music, décor — in the customer's language, within budget, decided together.</p>
+    <div class="foot"><span>Event Concierge</span><span>7 / 9</span></div>
+  </section>
+
+  <!-- POST-EVENT FEASIBILITY -->
+  <section class="slide">
+    <div class="kick">Post-event feasibility <span class="pct">· 10%</span></div><div class="rule"></div>
+    <h2 class="serif">A product Start Global can ship.</h2>
+    <div class="grid g3">
+      <div class="box"><h3 class="serif">Already real</h3><p class="soft">Live deploy, real venue data, persisted bookings, emailed invoices, shareable packages.</p></div>
+      <div class="box"><h3 class="serif">To productize</h3><p class="soft">Swap demo Stripe/SmartBill for live keys, a vendor portal for real catalogs &amp; photos, CRM &amp; WhatsApp.</p></div>
+      <div class="box"><h3 class="serif">Why it sticks</h3><p class="soft">Recurring seasonal demand (every class, every year), vendor commissions, white-label per school.</p></div>
+    </div>
+    <div class="box" style="margin-top:18px"><b>Stretch goals already in:</b> multilingual EN/RO, shareable package summary, and live multi-person collaboration with voting.</div>
+    <div class="foot"><span>Event Concierge</span><span>8 / 9</span></div>
+  </section>
+
+  <!-- CLOSE -->
+  <section class="slide center">
+    <div class="kick">Thank you</div><div class="rule"></div>
+    <h1 class="serif">Plan it in a conversation.</h1>
+    <p class="big" style="margin-top:14px">startglobal.rzs-it.ro · github.com/andreisirbu91-lab/smartglobal</p>
+    <p class="soft" style="margin-top:10px">office@ambasada.pro</p>
+    <div class="foot"><span>Event Concierge</span><span>9 / 9</span></div>
+  </section>
+
+</div>
+</body>
+</html>
