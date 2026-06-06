@@ -28,6 +28,7 @@ const L = {
   draftTitle: { en: "Shared package", ro: "Pachet trimis" },
   draftThanks: { en: "Someone shared this event package with you. Take a look!", ro: "Cineva ți-a trimis acest pachet de eveniment. Aruncă un ochi!" },
   bookThis: { en: "Build your own package", ro: "Construiește-ți pachetul" },
+  modify: { en: "Modify or reschedule", ro: "Modifică sau reprogramează" },
   waMsg: { en: "Check out our event package", ro: "Uite pachetul nostru de eveniment" },
 };
 
@@ -140,6 +141,14 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
           )}
 
           <BookingActions lang={lang} waMessage={waMessage} />
+
+          {!isDraft && (
+            <div className="no-print text-center">
+              <Link href={`/?edit=${booking.id}`} className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-5 py-2.5 text-sm font-medium text-ink transition hover:border-gold">
+                {tr(L.modify, lang)}
+              </Link>
+            </div>
+          )}
 
           <div className="no-print text-center">
             <Link href="/" className="text-sm text-gold-deep underline-offset-4 hover:underline">

@@ -111,7 +111,29 @@ export default function Home() {
   const sessionRevRef = useRef(0);
   const adoptingRef = useRef(false);
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const editIdRef = useRef<string | null>(null);
   const router = useRouter();
+
+  /** Load an existing booking to modify/reschedule it conversationally. */
+  async function loadBooking(id: string) {
+    try {
+      const res = await fetch(`/api/booking/${id}`);
+      if (!res.ok) return;
+      const d = await res.json();
+      if (!d.order) return;
+      editIdRef.current = id;
+      closeShownRef.current = true; // it's already a booking; no first-time close theatrics
+      const base: OrderState = d.order;
+      setOrder(base);
+      setMessages([]);
+      setTab("chat");
+      await kickAgent(
+        base,
+        `[SYSTEM NOTE (always English) — reply ONLY in ${base.language === "ro" ? "Romanian" : "English"}. This is an EXISTING booking (ref ${d.ref}) the customer wants to modify or reschedule. In ONE warm line, confirm you've loaded their package and ask what they'd like to change — the date, an add-on, a package, the venue — then ask_choice 3-4 quick options like "Change the date", "Swap an item", "Add something", "Change the venue". Do NOT rebuild from scratch; keep everything already chosen.]`,
+        []
+      );
+    } catch { /* ignore */ }
+  }
 
   function openOther() {
     setTab("chat");
@@ -227,7 +249,10 @@ export default function Home() {
     if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("ro")) {
       setOrder((o) => setLanguage(o, "ro"));
     }
-    const s = new URLSearchParams(window.location.search).get("s");
+    const params = new URLSearchParams(window.location.search);
+    const edit = params.get("edit");
+    if (edit) { loadBooking(edit); return; }
+    const s = params.get("s");
     if (s) { setSessionId(s); joinSession(s); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -280,7 +305,7 @@ export default function Home() {
     const labels = pendingRef.current;
     pendingRef.current = [];
     if (!labels.length) return;
-    const instruction = `[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and briefly (1 short sentence). Then you MUST move the screen forward to a DIFFERENT category: call recommend_tiers for the NEXT not-yet-covered category (check CATEGORIES ALREADY IN THE PACKAGE — never re-show a category that's covered, and never re-show the same set they just picked from). If a venue was chosen, go to the first service category. If every category is covered, ask for name+email to finalize. ALWAYS end by surfacing something new (recommend_tiers / discover_places / ask_choice). NEVER re-ask anything already set; do NOT re-add items already added.]`;
+    const instruction = `[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and briefly (1 short sentence). Then you MUST move the screen forward to a DIFFERENT category by calling **recommend_tiers** (cumulative tiers) for the NEXT not-yet-covered category — NEVER use recommend_items here, and never re-show a category in CATEGORIES ALREADY IN THE PACKAGE or the same set they just picked from. If a venue was chosen, go to the first service category. If every category is covered, ask for name+email to finalize. ALWAYS end by surfacing something new (recommend_tiers / discover_places / ask_choice). NEVER re-ask anything already set; do NOT re-add items already added.]`;
     setLoading(true);
     setStatus(null);
     const ctrl = new AbortController();
@@ -462,20 +487,42 @@ export default function Home() {
   async function toggleLang() {
     const target: Lang = lang === "en" ? "ro" : "en";
     setOrder((o) => setLanguage(o, target));
-    const texts = messagesRef.current.map((m) => m.content);
+
+    // Translate BOTH the chat AND the on-screen surface (choice/tier questions & labels).
+    const msgs = messagesRef.current.map((m) => m.content);
+    const ch = orderRef.current.choices;
+    const ti = orderRef.current.tiers;
+    const surface: string[] = [];
+    if (ch) { surface.push(ch.question ?? ""); ch.options.forEach((o) => { surface.push(o.label); surface.push(o.desc ?? ""); }); }
+    if (ti) { surface.push(ti.question ?? ""); ti.options.forEach((o) => surface.push(o.label)); }
+    const texts = [...msgs, ...surface];
     if (!texts.length) return;
+
     setLoading(true);
-    setStatus(target === "ro" ? "Traduc conversația…" : "Translating the chat…");
+    setStatus(target === "ro" ? "Traduc conversația…" : "Translating…");
     try {
       const res = await fetch("/api/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ texts, target }),
       });
       const d = await res.json();
-      if (Array.isArray(d.texts) && d.texts.length === texts.length) {
-        setMessages((prev) => (prev.length === d.texts.length ? prev.map((m, i) => ({ ...m, content: d.texts[i] })) : prev));
-      }
+      if (!Array.isArray(d.texts) || d.texts.length !== texts.length) return;
+      const tr2 = d.texts as string[];
+      setMessages((prev) => (prev.length === msgs.length ? prev.map((m, i) => ({ ...m, content: tr2[i] })) : prev));
+      // Re-map the surface translations back onto choices/tiers.
+      let k = msgs.length;
+      setOrder((o) => {
+        const n = { ...o };
+        if (n.choices) {
+          const q = tr2[k++]; const opts = n.choices.options.map((op) => ({ ...op, label: tr2[k++], desc: op.desc ? tr2[k++] : op.desc }));
+          n.choices = { ...n.choices, question: q || n.choices.question, options: opts };
+        }
+        if (n.tiers) {
+          const q = tr2[k++]; const opts = n.tiers.options.map((op) => ({ ...op, label: tr2[k++] }));
+          n.tiers = { ...n.tiers, question: q || n.tiers.question, options: opts };
+        }
+        return n;
+      });
     } catch {
       /* keep originals */
     } finally {
@@ -554,7 +601,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
       const res = await fetch("/api/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: orderRef.current }),
+        body: JSON.stringify({ order: orderRef.current, editId: editIdRef.current }),
       });
       const data = await res.json();
       if (data.id) router.push(`/booking/${data.id}`);
