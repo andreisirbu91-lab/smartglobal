@@ -100,65 +100,9 @@ function estimate(kind: Kind, level: number | undefined, seed: number): { estFla
   }
 }
 
-export async function searchVenues(query: string, city: string): Promise<Venue[]> {
-  if (!KEY) return curatedVenues(query, city);
-
-  try {
-    const center = await geocodeCity(city);
-    const body: Record<string, unknown> = { maxResultCount: 6 };
-    if (center) {
-      body.locationBias = { circle: { center, radius: RADIUS_M } };
-    }
-    const fields = [
-      "places.id",
-      "places.displayName",
-      "places.formattedAddress",
-      "places.location",
-      "places.rating",
-      "places.userRatingCount",
-      "places.priceLevel",
-      "places.googleMapsUri",
-      "places.photos.name",
-      "places.reviews",
-    ].join(",");
-
-    const data = await searchText(`${query} in ${city}`, fields, body);
-    const places: any[] = data.places ?? [];
-    const kind = classifyKind(query);
-
-    const venues = places
-      .filter((p) => !center || !p.location || haversineMeters(center, p.location) <= RADIUS_M)
-      .map((p): Venue => {
-        const photos: string[] = (p.photos ?? [])
-          .slice(0, 6)
-          .map((ph: any) => `/api/places/photo?name=${encodeURIComponent(ph.name)}`);
-        const review = p.reviews?.find((r: any) => r?.text?.text)?.text?.text as string | undefined;
-        const level = priceLevelToNumber(p.priceLevel);
-        const est = estimate(kind, level, hash(p.id ?? p.displayName?.text ?? ""));
-        return {
-          placeId: p.id,
-          name: p.displayName?.text ?? "Venue",
-          address: p.formattedAddress,
-          rating: p.rating,
-          reviews: p.userRatingCount,
-          priceLevel: level,
-          photoUrl: photos[0],
-          photos,
-          mapsUrl: p.googleMapsUri,
-          reviewQuote: review ? truncate(review, 160) : undefined,
-          estFlatPrice: est.estFlatPrice,
-          estPricePerGuest: est.estPricePerGuest,
-          source: "google",
-        };
-      })
-      .filter((v) => v.rating === undefined || v.rating >= 3.5)
-      .slice(0, 6);
-
-    return venues.length ? venues : curatedVenues(query, city);
-  } catch (err) {
-    console.error("searchVenues failed, using curated:", err);
-    return curatedVenues(query, city);
-  }
+export async function searchVenues(query: string, _city: string): Promise<Venue[]> {
+  // Single source of truth = the client's partner venues from the offer PDF. No external search.
+  return partnerVenues(query);
 }
 
 export async function fetchPhoto(name: string): Promise<{ body: ArrayBuffer; contentType: string } | null> {
@@ -187,45 +131,44 @@ const truncate = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1).tri
 
 // --- Curated fallback ------------------------------------------------------
 
-function curatedVenues(query: string, city: string): Venue[] {
-  const u = (id: string) =>
-    `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=70`;
-  return [
-    {
-      placeId: "curated-1",
-      name: `Grand Ballroom ${city}`,
-      address: `${city}, Romania`,
-      rating: 4.8,
-      reviews: 412,
-      priceLevel: 3,
-      photoUrl: u("1519225421980-715cb0215aed"),
-      reviewQuote: "Stunning hall, impeccable service — our guests were amazed.",
-      estFlatPrice: 2200,
-      source: "curated",
-    },
-    {
-      placeId: "curated-2",
-      name: `Seaside Terrace ${city}`,
-      address: `${city}, Romania`,
-      rating: 4.7,
-      reviews: 188,
-      priceLevel: 2,
-      photoUrl: u("1464366400600-7168b8af9bc3"),
-      reviewQuote: "Magical sunset views right on the water. Perfect setting.",
-      estFlatPrice: 1200,
-      source: "curated",
-    },
-    {
-      placeId: "curated-3",
-      name: `Garden Pavilion ${city}`,
-      address: `${city}, Romania`,
-      rating: 4.6,
-      reviews: 263,
-      priceLevel: 2,
-      photoUrl: u("1505236858219-8359eb29e329"),
-      reviewQuote: "Lovely green space, great food, very flexible team.",
-      estFlatPrice: 1000,
-      source: "curated",
-    },
+function partnerVenues(query: string): Venue[] {
+  const img = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=70`;
+  // Star Global Academic partner venues (Constanța) — from the 2026 offer PDF.
+  const RAW: { name: string; type: "indoor" | "mixed" | "clubbing"; img: string }[] = [
+    { name: "Porto del Sole Restaurant", type: "indoor", img: img("1519225421980-715cb0215aed") },
+    { name: "Ten Luxury Ballroom", type: "indoor", img: img("1464366400600-7168b8af9bc3") },
+    { name: "Del Mar Ballroom", type: "indoor", img: img("1505236858219-8359eb29e329") },
+    { name: "Le Club Mileva", type: "indoor", img: img("1542314831-068cd1dbfeeb") },
+    { name: "Sofra Lake Restaurant", type: "mixed", img: img("1414235077428-338989a2e8c0") },
+    { name: "Queen Vera", type: "indoor", img: img("1519671482749-fd09be7ccebf") },
+    { name: "Imago", type: "indoor", img: img("1530103862676-de8c9debad1d") },
+    { name: "Colonadelor", type: "indoor", img: img("1551218808-94e220e084d2") },
+    { name: "Kupolla", type: "indoor", img: img("1517248135467-4c7edcad34c4") },
+    { name: "La Dolce Vita", type: "indoor", img: img("1466978913421-dad2ebd01d17") },
+    { name: "Miraj by the Lake", type: "mixed", img: img("1505693416388-ac5ce068fe85") },
+    { name: "The Place", type: "mixed", img: img("1519671482749-fd09be7ccebf") },
+    { name: "The View", type: "mixed", img: img("1469474968028-56623f02e42e") },
+    { name: "Black Sea Horses (Nazarcea)", type: "mixed", img: img("1500382017468-9049fed747ef") },
+    { name: "Forest M", type: "mixed", img: img("1441974231531-c6227db76b6e") },
+    { name: "Crama Rasova", type: "mixed", img: img("1510812431401-41d2bd2722f3") },
+    { name: "Kift Garden", type: "mixed", img: img("1464366400600-7168b8af9bc3") },
+    { name: "Fratelli Lounge & Club", type: "clubbing", img: img("1516450360452-9312f5e86fc7") },
+    { name: "Zoom Beach", type: "clubbing", img: img("1507525428034-b723cf961d3e") },
+    { name: "Neversea Beach", type: "clubbing", img: img("1470229722913-7c0e2dbbafd3") },
   ];
+  const s = query.toLowerCase();
+  let list = RAW;
+  if (/club|petrecere|party|dans|beach|plaj/.test(s)) list = RAW.filter((v) => v.type === "clubbing");
+  else if (/outdoor|gr[ăa]din|teras|lac|aer liber|p[ăa]dure|forest/.test(s)) list = RAW.filter((v) => v.type !== "indoor");
+  const slug = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return list.map((v) => ({
+    placeId: `sg-${slug(v.name)}`,
+    name: v.name,
+    address: "Constanța · partener Star Global",
+    photoUrl: v.img,
+    photos: [v.img],
+    mapsUrl: `https://www.google.com/maps/search/${encodeURIComponent(v.name + " Constanța")}`,
+    estFlatPrice: 0,
+    source: "curated",
+  }));
 }

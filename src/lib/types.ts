@@ -55,8 +55,10 @@ export type CatalogItem = {
   category: CategoryId;
   /** Empty array = available for all event types. */
   eventTypes: EventTypeId[];
-  price: number; // EUR
+  price: number; // RON by default; EUR when currency === "EUR" (e.g. artists)
   unit: Unit;
+  /** Price currency. Defaults to RON; artists are quoted in EUR. */
+  currency?: "EUR" | "RON";
   /** Optional real-photo override (http URL or /catalog/... path). */
   image?: string;
   popular?: boolean;
@@ -190,6 +192,8 @@ export type QuoteLine = {
   quantity: number;
   total: number;
   savings?: number;
+  /** Display currency of unitPrice/total (defaults to RON). */
+  currency?: "EUR" | "RON";
 };
 
 export type Discount = {

@@ -62,7 +62,7 @@ export function CatalogCard({
           <h3 className="text-display text-[14px] leading-tight text-ink">{tr(item.name, lang)}</h3>
           <p className="line-clamp-1 text-[11px] text-ink-soft">{tr(item.description, lang)}</p>
           <div className="flex items-center justify-between pt-0.5">
-            <span className="text-display text-base text-gold-deep">{money(item.price)}</span>
+            <span className="text-display text-base text-gold-deep">{money(item.price, item.currency)}</span>
             <span className="text-[10px] text-ink-soft">{tr(unitLabel[item.unit], lang)}</span>
           </div>
           <div className="text-[9px] text-ink-soft/70">{ron(item.price)}</div>
@@ -106,7 +106,7 @@ export function CatalogCard({
                 )}
                 <div className="flex items-end justify-between rounded-xl bg-ivory/60 px-4 py-3">
                   <div>
-                    <div className="text-display text-2xl text-gold-deep">{money(item.price)}</div>
+                    <div className="text-display text-2xl text-gold-deep">{money(item.price, item.currency)}</div>
                     <div className="text-[11px] text-ink-soft">{tr(unitLabel[item.unit], lang)} · {ron(item.price)}</div>
                   </div>
                   <Button variant={selected ? "ghost" : "gold"} onClick={() => { onToggle(item.id); setOpen(false); }}>

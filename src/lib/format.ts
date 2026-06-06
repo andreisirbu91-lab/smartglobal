@@ -3,9 +3,11 @@ import type { Lang, Localized, Unit } from "./types";
 /** App currency is RON (the real Star Global catalog). Approx € equivalent shown as a hint. */
 export const RON_PER_EUR = 4.97;
 
-/** Primary price label in RON, e.g. "245 RON" / "24.500 RON". */
-export const money = (n: number): string =>
-  `${Math.round(n).toLocaleString("ro-RO")} RON`;
+/** Primary price label. RON by default; pass "EUR" for euro-quoted items (artists). */
+export const money = (n: number, currency: "EUR" | "RON" = "RON"): string =>
+  currency === "EUR"
+    ? `€${Math.round(n).toLocaleString("en-IE")}`
+    : `${Math.round(n).toLocaleString("ro-RO")} RON`;
 
 /** Secondary € equivalent, e.g. "≈ €49". */
 export const ron = (lei: number): string =>

@@ -5,6 +5,7 @@ import {
   eventById,
   itemById,
 } from "./catalog";
+import { RON_PER_EUR } from "./format";
 import type {
   Contact,
   CustomItem,
@@ -324,10 +325,13 @@ export function quote(state: OrderState): Quote {
       quantity,
       total,
       savings,
+      currency: (r as { currency?: "EUR" | "RON" }).currency,
     });
   }
 
-  const subtotal = round2(lines.reduce((sum, l) => sum + l.total, 0));
+  // Everything totals in RON; EUR-quoted lines (artists) convert at RON_PER_EUR.
+  const toRON = (l: QuoteLine) => (l.currency === "EUR" ? l.total * RON_PER_EUR : l.total);
+  const subtotal = round2(lines.reduce((sum, l) => sum + toRON(l), 0));
 
   const discounts: Discount[] = [];
   if (subtotal > 0 && state.graduates >= GROUP_DISCOUNT.minGraduates) {

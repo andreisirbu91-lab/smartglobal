@@ -68,7 +68,7 @@ export function CartPanel({
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[13px] font-medium text-ink underline-offset-2 hover:underline">{tr(l.name, lang)}</div>
                     <div className="text-[11px] text-ink-soft">
-                      {money(l.unitPrice)} × {l.quantity}
+                      {money(l.unitPrice, l.currency)} × {l.quantity}
                       {l.savings ? (
                         <span className="ml-1 text-wine">· {t("savings", lang)} {money(l.savings)}</span>
                       ) : null}
@@ -76,7 +76,7 @@ export function CartPanel({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-display text-[15px] text-ink">{money(l.total)}</span>
+                  <span className="text-display text-[15px] text-ink">{money(l.total, l.currency)}</span>
                   <button
                     onClick={() => onRemove(l.itemId)}
                     aria-label={t("remove", lang)}
@@ -193,7 +193,7 @@ function CartItemModal({ id, order, lang, onClose }: { id: string | null; order:
           {typeof meta.address === "string" && <p className="text-[12px] text-ink-soft">{meta.address}</p>}
           <p className="rounded-lg bg-gold/[0.07] px-3 py-2 text-[12px] text-ink-soft">{unitNote}</p>
           <div className="flex items-center justify-between pt-1">
-            <span className="text-display text-xl text-gold-deep">{money(price)}{unit !== "flat" ? <span className="text-[12px] text-ink-soft">/{unit === "per_guest" ? t("perGuest", lang) : lang === "ro" ? "absolvent" : "graduate"}</span> : null}</span>
+            <span className="text-display text-xl text-gold-deep">{money(price, item?.currency)}{unit !== "flat" ? <span className="text-[12px] text-ink-soft">/{unit === "per_guest" ? t("perGuest", lang) : lang === "ro" ? "absolvent" : "graduate"}</span> : null}</span>
             {typeof meta.mapsUrl === "string" && (
               <a href={meta.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] text-ink-soft underline-offset-2 hover:text-ink hover:underline">Maps ↗</a>
             )}
