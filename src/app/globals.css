@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ivory: #f8f6f0;
-  --color-ivory-deep: #efebe0;
-  --color-ink: #232220;
-  --color-ink-soft: #6e6c64;
-  /* refined champagne-gold accent — elegant, never loud */
-  --color-gold: #a98545;
-  --color-gold-soft: #e7d8b6;
-  --color-gold-deep: #856833;
+  --color-ivory: #f6f1e6;
+  --color-ivory-deep: #ece3d1;
+  --color-ink: #262320;
+  --color-ink-soft: #6e685c;
+  /* antique champagne-gold — editorial accent, used as hairlines & small marks */
+  --color-gold: #b1904c;
+  --color-gold-soft: #e3d2a6;
+  --color-gold-deep: #8a6c30;
   --color-wine: #6f2c39;
-  --color-card: #ffffff;
+  --color-card: #fffdf8;
 
   --font-display: var(--font-fraunces), Georgia, serif;
   --font-body: var(--font-inter), system-ui, sans-serif;
 
-  --radius-card: 1rem;
+  --radius-card: 0.9rem;
 }
 
 :root {
@@ -29,56 +29,71 @@ html {
 }
 
 body {
-  background: var(--color-ivory);
+  background:
+    radial-gradient(1100px 520px at 50% -8%, rgba(177, 144, 76, 0.07), transparent 60%),
+    var(--color-ivory);
   color: var(--color-ink);
   font-family: var(--font-body);
   min-height: 100dvh;
 }
 
-/* Primitives ------------------------------------------------------- */
+/* Editorial primitives ------------------------------------------------ */
 .gold-hairline {
   height: 1px;
-  background: rgba(42, 41, 37, 0.08);
+  background: linear-gradient(90deg, transparent, var(--color-gold-soft) 15%, var(--color-gold) 50%, var(--color-gold-soft) 85%, transparent);
+  opacity: 0.8;
+}
+
+/* A thin gold rule used under section titles */
+.rule-gold {
+  height: 1px;
+  width: 2.25rem;
+  background: var(--color-gold);
+  opacity: 0.75;
 }
 
 .card-soft {
   background: var(--color-card);
-  border: 1px solid rgba(35, 34, 32, 0.08);
+  border: 1px solid rgba(138, 108, 48, 0.16);
   border-radius: var(--radius-card);
   box-shadow:
-    0 1px 2px rgba(35, 34, 32, 0.04),
-    0 18px 44px -30px rgba(35, 34, 32, 0.30);
+    0 1px 2px rgba(38, 35, 32, 0.03),
+    0 26px 56px -40px rgba(38, 35, 32, 0.34);
 }
 
 .text-display {
   font-family: var(--font-display);
   font-optical-sizing: auto;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.018em;
 }
 
-/* Primary button — sober, dark (Claude-like) */
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-gold-deep);
+}
+
+/* Primary button — refined dark with a hairline; quietly luxurious */
 .btn-gold {
   background: var(--color-ink);
-  color: #fff;
+  color: #f6f1e6;
   border-radius: 9999px;
+  letter-spacing: 0.01em;
+  box-shadow: 0 10px 26px -16px rgba(38, 35, 32, 0.7);
 }
-.btn-gold:hover {
-  background: #1a1916;
-}
-.btn-gold:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+.btn-gold:hover { background: #14120f; }
+.btn-gold:disabled { opacity: 0.4; cursor: not-allowed; }
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(5px); }
+  from { opacity: 0; transform: translateY(7px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-rise { animation: rise 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-rise { animation: rise 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 .scroll-thin::-webkit-scrollbar { width: 8px; }
 .scroll-thin::-webkit-scrollbar-thumb {
-  background: rgba(42, 41, 37, 0.16);
+  background: rgba(138, 108, 48, 0.28);
   border-radius: 8px;
 }
 

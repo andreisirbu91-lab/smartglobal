@@ -931,14 +931,18 @@ function Landing({
       ? ["Nuntă în Constanța, 150 invitați, ~20.000€", "Banchet de liceu în Cluj, 60 elevi", "Weekend romantic la munte, ~800€"]
       : ["A wedding in Constanța, 150 guests, ~€20k", "Highschool banquet in Cluj, 60 students", "A romantic mountain weekend, ~€800"];
   return (
-    <div className="mx-auto w-full max-w-2xl py-10 sm:py-14">
-      <div className="animate-rise text-center">
-        <div className="text-[11px] uppercase tracking-[0.2em] text-gold-deep/80">
-          {lang === "ro" ? "Spune-mi într-o frază" : "Tell me in one line"}
-        </div>
-        <h1 className="text-display mt-2 text-3xl text-ink sm:text-4xl">
+    <div className="mx-auto w-full max-w-2xl py-14 sm:py-20">
+      <div className="animate-rise flex flex-col items-center text-center">
+        <div className="kicker">{lang === "ro" ? "Event Concierge" : "Event Concierge"}</div>
+        <div className="rule-gold mt-4" />
+        <h1 className="text-display mt-5 text-5xl leading-[1.04] text-ink sm:text-6xl">
           {lang === "ro" ? "Ce planificăm?" : "What are we planning?"}
         </h1>
+        <p className="mt-4 max-w-md text-[15px] leading-relaxed text-ink-soft">
+          {lang === "ro"
+            ? "Descrie evenimentul tău într-o frază, iar eu construiesc pachetul complet — locații reale, furnizori, preț."
+            : "Describe your event in one line and I'll build the full package — real venues, vendors and pricing."}
+        </p>
       </div>
 
       <div className="animate-rise mt-6 flex items-end gap-2">

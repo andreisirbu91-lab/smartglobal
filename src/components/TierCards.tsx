@@ -19,8 +19,13 @@ export function TierCards({
 }) {
   const ro = lang === "ro";
   return (
-    <div className="space-y-3.5">
-      {question && <h3 className="text-display text-[20px] leading-snug text-ink">{question}</h3>}
+    <div className="space-y-4">
+      {question && (
+        <div className="space-y-2">
+          <div className="rule-gold" />
+          <h3 className="text-display text-[26px] leading-[1.12] text-ink">{question}</h3>
+        </div>
+      )}
       <div className="grid gap-2.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))" }}>
         {options.map((o, i) => {
           const items = o.itemIds.map((id) => itemById(id)).filter((x): x is NonNullable<typeof x> => Boolean(x));
@@ -32,8 +37,8 @@ export function TierCards({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
               onClick={() => onPick(o.itemIds)}
-              className={`group relative flex flex-col gap-2 rounded-xl border bg-white p-4 text-left shadow-[0_1px_2px_rgba(35,34,32,.04),0_16px_38px_-28px_rgba(35,34,32,.28)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_46px_-26px_rgba(169,133,69,.42)] ${
-                best ? "border-gold/50 ring-1 ring-gold/20" : "border-ink/8 hover:border-gold/45"
+              className={`group relative flex flex-col gap-2 rounded-[0.9rem] border bg-card p-5 text-left shadow-[0_1px_2px_rgba(38,35,32,.03),0_18px_42px_-30px_rgba(38,35,32,.3)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-28px_rgba(177,144,76,.42)] ${
+                best ? "border-gold/55 ring-1 ring-gold/25" : "border-gold/20 hover:border-gold/55"
               }`}
             >
               {best && (

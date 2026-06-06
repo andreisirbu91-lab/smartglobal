@@ -24,9 +24,12 @@ export function ChoiceCards({
   const [showCal, setShowCal] = useState(false);
 
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-4">
       {question && (
-        <h3 className="text-display text-[20px] leading-snug text-ink">{question}</h3>
+        <div className="space-y-2">
+          <div className="rule-gold" />
+          <h3 className="text-display text-[26px] leading-[1.12] text-ink">{question}</h3>
+        </div>
       )}
 
       {(input === "number" || input === "text") && (
@@ -72,11 +75,11 @@ export function ChoiceCards({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
               onClick={() => onPick(o.label)}
-              className="group flex min-h-[92px] flex-col items-start gap-1.5 rounded-xl border border-ink/8 bg-white p-4 text-left shadow-[0_1px_2px_rgba(35,34,32,.04),0_14px_34px_-26px_rgba(35,34,32,.26)] transition hover:-translate-y-0.5 hover:border-gold/45 hover:shadow-[0_20px_44px_-24px_rgba(169,133,69,.4)]"
+              className="group flex min-h-[96px] flex-col items-start gap-2 rounded-[0.9rem] border border-gold/20 bg-card p-5 text-left shadow-[0_1px_2px_rgba(38,35,32,.03),0_18px_42px_-30px_rgba(38,35,32,.3)] transition hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_50px_-28px_rgba(177,144,76,.42)]"
             >
-              <span className="grid h-6 w-6 place-items-center rounded-full bg-gold/12 text-[11px] font-semibold text-gold-deep">{i + 1}</span>
-              <span className="text-display text-[15px] leading-tight text-ink">{o.label}</span>
-              {o.desc && <span className="text-[12px] leading-snug text-ink-soft">{o.desc}</span>}
+              <span className="text-display text-[13px] text-gold-deep">{String(i + 1).padStart(2, "0")}</span>
+              <span className="text-display text-[16px] leading-tight text-ink">{o.label}</span>
+              {o.desc && <span className="text-[12.5px] leading-snug text-ink-soft">{o.desc}</span>}
             </motion.button>
           ))}
         </div>
