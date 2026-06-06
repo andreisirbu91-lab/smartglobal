@@ -44,7 +44,18 @@ export function CartPanel({
     <div className="flex h-full flex-col">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-display text-xl text-ink">{t("yourPackage", lang)}</h2>
-        <Pill tone="ink">{quote.lines.length}</Pill>
+        <div className="flex items-center gap-2">
+          {quote.lines.length > 0 && (
+            <button
+              onClick={() => onRemove(quote.lines[quote.lines.length - 1].itemId)}
+              className="no-print rounded-full border border-ink/15 px-2.5 py-1 text-[11px] font-medium text-ink-soft transition hover:border-gold hover:text-ink"
+              title={lang === "ro" ? "Anulează ultima alegere" : "Undo last"}
+            >
+              ↶ {lang === "ro" ? "Înapoi" : "Undo"}
+            </button>
+          )}
+          <Pill tone="ink">{quote.lines.length}</Pill>
+        </div>
       </div>
 
       {/* Attendee counters */}
