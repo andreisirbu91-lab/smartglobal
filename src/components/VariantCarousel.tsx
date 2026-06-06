@@ -11,6 +11,10 @@ export type CarouselItem = {
   subtitle?: string;
   price?: string;
   href?: string;
+  /** Extra photos for the Info modal gallery. */
+  images?: string[];
+  /** Bullet details for the Info modal (address, included items…). */
+  bullets?: string[];
 };
 
 /**
@@ -35,6 +39,7 @@ export function VariantCarousel({
   const [base, setBase] = useState(0);
   const [hover, setHover] = useState(false);
   const [mouse, setMouse] = useState({ x: 0.5 });
+  const [info, setInfo] = useState<CarouselItem | null>(null);
   const raf = useRef<number | null>(null);
 
   // Continuous slow rotation; paused while hovering.
@@ -67,8 +72,8 @@ export function VariantCarousel({
   return (
     <div className="space-y-4">
       <div
-        className="relative h-[320px] w-full select-none sm:h-[360px]"
-        style={{ perspective: "1200px" }}
+        className="relative h-[340px] w-full select-none sm:h-[392px]"
+        style={{ perspective: "1300px" }}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => { setHover(false); setMouse({ x: 0.5 }); }}
         onMouseMove={(e) => {
@@ -80,9 +85,9 @@ export function VariantCarousel({
           {items.map((item, i) => {
             const a = (((base + i * (360 / n)) % 360 + 360) % 360) * (Math.PI / 180);
             const depth = Math.sin(a);            // -1 back .. 1 front
-            const x = Math.cos(a) * 230 + (mouse.x - 0.5) * 30;
+            const x = Math.cos(a) * 300 + (mouse.x - 0.5) * 30;
             const y = -depth * 26;
-            const scale = 0.62 + ((depth + 1) / 2) * 0.62; // back .62 .. front 1.24
+            const scale = 0.6 + ((depth + 1) / 2) * 0.6; // back .6 .. front 1.2
             const opacity = 0.35 + ((depth + 1) / 2) * 0.65;
             const z = Math.round(depth * 100);
             const sel = item.id === selectedId;
@@ -90,7 +95,7 @@ export function VariantCarousel({
               <button
                 key={item.id}
                 onClick={() => onSelect(item.id)}
-                className="absolute h-[150px] w-[116px] overflow-hidden rounded-2xl border bg-card text-left shadow-[0_24px_48px_-24px_rgba(38,35,32,.5)] transition-[border-color] sm:h-[176px] sm:w-[136px]"
+                className="absolute h-[160px] w-[124px] overflow-hidden rounded-2xl border bg-card text-left shadow-[0_24px_48px_-24px_rgba(38,35,32,.5)] transition-[border-color] sm:h-[188px] sm:w-[146px]"
                 style={{
                   transform: `translate(${x}px, ${y}px) scale(${scale})`,
                   opacity,
@@ -127,13 +132,14 @@ export function VariantCarousel({
             <div className="text-display truncate text-[15px] text-ink">{focus.title}</div>
             {focus.subtitle && <div className="truncate text-[12px] text-ink-soft">{focus.subtitle}</div>}
           </div>
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2.5">
             {focus.price && <span className="text-display text-[15px] text-gold-deep">{focus.price}</span>}
-            {focus.href && (
-              <a href={focus.href} target="_blank" rel="noopener noreferrer" className="text-[12px] text-ink-soft underline-offset-2 hover:text-ink hover:underline">
-                {lang === "ro" ? "Detalii ↗" : "Details ↗"}
-              </a>
-            )}
+            <button
+              onClick={() => setInfo(focus)}
+              className="rounded-full border border-ink/15 px-3 py-2 text-[12px] font-medium text-ink-soft transition hover:border-gold hover:text-ink"
+            >
+              ⓘ {lang === "ro" ? "Info" : "Info"}
+            </button>
             {voting && (
               <button
                 onClick={() => voting.onVote(focus.id)}
@@ -151,6 +157,56 @@ export function VariantCarousel({
       <p className="text-center text-[11px] text-ink-soft/70">
         {lang === "ro" ? "Treci cu mouse-ul ca să se oprească · click pe un card ca să alegi" : "Hover to pause · click a card to choose"}
       </p>
+
+      {info && (
+        <CarouselInfo
+          item={info}
+          lang={lang}
+          onClose={() => setInfo(null)}
+          onChoose={() => { onSelect(info.id); setInfo(null); }}
+          chosen={selectedId === info.id}
+        />
+      )}
+    </div>
+  );
+}
+
+function CarouselInfo({ item, lang, onClose, onChoose, chosen }: { item: CarouselItem; lang: Lang; onClose: () => void; onChoose: () => void; chosen: boolean }) {
+  const gallery = (item.images && item.images.length ? item.images : item.src ? [item.src] : []).slice(0, 6);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="max-h-[88vh] w-full max-w-md overflow-y-auto rounded-2xl bg-card shadow-2xl scroll-thin" onClick={(e) => e.stopPropagation()}>
+        {gallery.length > 0 && (
+          <div className={`grid gap-1 ${gallery.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+            {gallery.map((g, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={i} src={g} alt={item.title} className={`h-32 w-full object-cover ${gallery.length === 1 ? "rounded-t-2xl" : i === 0 ? "rounded-tl-2xl" : i === 1 ? "rounded-tr-2xl" : ""}`} />
+            ))}
+          </div>
+        )}
+        <div className="space-y-2.5 p-5">
+          <h3 className="text-display text-xl text-ink">{item.title}</h3>
+          {item.subtitle && <p className="text-sm text-ink-soft">{item.subtitle}</p>}
+          {item.bullets && item.bullets.length > 0 && (
+            <ul className="space-y-1">
+              {item.bullets.map((b, i) => (
+                <li key={i} className="flex gap-2 text-[13px] text-ink"><span className="text-gold-deep">✓</span> {b}</li>
+              ))}
+            </ul>
+          )}
+          <div className="flex items-center justify-between pt-1">
+            {item.price ? <span className="text-display text-xl text-gold-deep">{item.price}</span> : <span />}
+            {item.href && (
+              <a href={item.href} target="_blank" rel="noopener noreferrer" className="text-[13px] text-ink-soft underline-offset-2 hover:text-ink hover:underline">
+                {lang === "ro" ? "Vezi pe hartă ↗" : "View on map ↗"}
+              </a>
+            )}
+          </div>
+          <button onClick={onChoose} className="btn-champagne mt-2 w-full py-2.5 text-sm font-semibold">
+            {chosen ? (lang === "ro" ? "Ales ✓" : "Chosen ✓") : (lang === "ro" ? "Alege" : "Choose")}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

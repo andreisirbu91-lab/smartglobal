@@ -654,9 +654,19 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
         lang={lang}
         voting={voting}
         items={order.tiers.options.map((o) => {
-          const first = itemById(o.itemIds[0]);
-          const names = o.itemIds.map((id) => itemById(id)).filter(Boolean).map((it) => tr(it!.name, lang));
-          return { id: o.label, src: first ? itemImage(first) : "", title: o.label, subtitle: names.slice(0, 3).join(" · "), price: money(o.total) };
+          const resolved = o.itemIds.map((id) => itemById(id)).filter(Boolean) as NonNullable<ReturnType<typeof itemById>>[];
+          const first = resolved[0];
+          const names = resolved.map((it) => tr(it.name, lang));
+          const bullets = first?.includes ? first.includes[lang] : names;
+          return {
+            id: o.label,
+            src: first ? itemImage(first) : "",
+            title: o.label,
+            subtitle: names.slice(0, 3).join(" · "),
+            price: money(o.total),
+            images: resolved.map((it) => itemImage(it)),
+            bullets,
+          };
         })}
         onSelect={(id) => { const o = order.tiers!.options.find((t) => t.label === id); if (o) addTier(o.itemIds); }}
       />
@@ -705,6 +715,12 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
               ? `${t("from", lang)} ${money(v.estFlatPrice)}`
               : undefined,
           href: v.mapsUrl,
+          images: v.photos,
+          bullets: [
+            v.address,
+            v.rating ? `★ ${v.rating}${v.reviews ? ` · ${v.reviews} ${t("reviews", lang)}` : ""}` : null,
+            lang === "ro" ? "Locație parteneră — inclusă în banchet" : "Partner venue — included in the banquet",
+          ].filter((x): x is string => Boolean(x)),
         }))}
         onSelect={(id) => {
           const v = order.discovery!.venues.find((x) => `venue:${x.placeId}` === id);
