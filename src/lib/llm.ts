@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { systemPrompt } from "./prompt";
 import { TOOLS, executeTool } from "./tools";
 import { quote } from "./engine";
+import { logTurn, capturedOf } from "./logger";
 import type { OrderState, Quote } from "./types";
 
 const client = new OpenAI({
@@ -11,7 +12,7 @@ const client = new OpenAI({
   defaultHeaders: { "User-Agent": "Mozilla/5.0" },
 });
 
-const MODEL = process.env.LLMOK_MODEL ?? "gpt-5.4-mini";
+const MODEL = process.env.LLMOK_MODEL ?? "claude-sonnet-4-6";
 
 export type TextMessage = { role: "user" | "assistant"; content: string };
 
@@ -59,6 +60,21 @@ export async function runConversation(
   onStatus?: (text: string) => void
 ): Promise<ConversationResult> {
   let order = initial;
+  const toolLog: { name: string; args: unknown }[] = [];
+  const lastUser = [...history].reverse().find((m) => m.role === "user")?.content ?? "";
+  const done = (assistantMessage: string): ConversationResult => {
+    void logTurn({
+      at: new Date().toISOString(),
+      lang: order.language,
+      lastUser,
+      in: capturedOf(initial),
+      tools: toolLog,
+      reply: assistantMessage,
+      out: capturedOf(order),
+      nextChoice: order.choices?.question,
+    });
+    return { assistantMessage, order, quote: quote(order) };
+  };
 
   const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: "system", content: systemPrompt(order) },
@@ -86,6 +102,7 @@ export async function runConversation(
         } catch {
           args = {};
         }
+        toolLog.push({ name: call.function.name, args });
         const status = statusFor(call.function.name, order.language);
         if (status) onStatus?.(status);
         const { state, result } = await executeTool(call.function.name, args, order);
@@ -101,7 +118,7 @@ export async function runConversation(
       continue;
     }
 
-    return { assistantMessage: choice.content ?? "", order, quote: quote(order) };
+    return done(choice.content ?? "");
   }
 
   // Loop exhausted: force a final narration (no more tools) so we never return
@@ -114,17 +131,14 @@ export async function runConversation(
       tool_choice: "none",
     });
     const text = final.choices[0].message.content;
-    if (text) return { assistantMessage: text, order, quote: quote(order) };
+    if (text) return done(text);
   } catch {
     /* fall through */
   }
 
-  return {
-    assistantMessage:
-      order.language === "ro"
-        ? "Am actualizat pachetul. Vrei să mai adăugăm ceva?"
-        : "I've updated your package. Anything else you'd like to add?",
-    order,
-    quote: quote(order),
-  };
+  return done(
+    order.language === "ro"
+      ? "Am actualizat pachetul. Vrei să mai adăugăm ceva?"
+      : "I've updated your package. Anything else you'd like to add?"
+  );
 }

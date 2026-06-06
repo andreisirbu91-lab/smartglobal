@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Contact, EventTypeId, Lang, OrderState, Venue } from "@/lib/types";
-import { eventById, itemById } from "@/lib/catalog";
+import type { CatalogItem, Contact, EventTypeId, Lang, OrderState, Venue } from "@/lib/types";
+import { CATALOG, eventById, itemById } from "@/lib/catalog";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   addVenue,
   applyPromo,
+  clearChoices,
   clearDiscovery,
   clearSpotlight,
   emptyOrder,
@@ -96,6 +98,8 @@ export default function Home() {
   const [confirming, setConfirming] = useState(false);
   const [tab, setTab] = useState<Tab>("chat");
   const [focusSignal, setFocusSignal] = useState(0);
+  const [checkout, setCheckout] = useState<null | "ask" | "searching" | "deal">(null);
+  const [dealStatus, setDealStatus] = useState("");
   const router = useRouter();
 
   function openOther() {
@@ -139,7 +143,7 @@ export default function Home() {
     const labels = pendingRef.current;
     pendingRef.current = [];
     if (!labels.length) return;
-    const instruction = `[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and briefly (1-2 sentences). If they ADDED items/places: acknowledge with one concrete detail AND suggest one tasteful complementary upgrade — call recommend_items for 1-2 things that pair well and are NOT already in the package. If they CHOSE A LOCATION or SET A DATE: just acknowledge it in one line and let them continue — do NOT search venues (venues load at the Venue step) and do NOT recommend_items for that. NEVER re-ask for anything already set. Do NOT re-add items already added.]`;
+    const instruction = `[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and briefly (1-2 sentences). If they CHOSE A VENUE/PLACE: acknowledge in ONE line and IMMEDIATELY move to the FIRST service category — call recommend_items (2-3 best add-ons like menu/photo/music) OR ask_choice for the next decision so the screen never goes empty. If they ADDED an item: acknowledge with one concrete detail AND immediately call recommend_items for the NEXT 1-2 complementary upgrades (or ask_choice the next category) — never end without a fresh surface. You MUST end this turn by calling a tool that puts something new on the screen (recommend_items, discover_places, or ask_choice). NEVER re-ask for anything already set. Do NOT re-add items already added.]`;
     setLoading(true);
     setStatus(null);
     const ctrl = new AbortController();
@@ -147,11 +151,20 @@ export default function Home() {
     try {
       const data = await streamChat({ messages: [...messagesRef.current, { role: "user", content: instruction }], order: orderRef.current }, setStatus, ctrl.signal);
       if (data.assistantMessage) setMessages((m) => [...m, { role: "assistant", content: data.assistantMessage! }]);
-      // Keep the agent's fresh recommendations AND discovered places (show them in the middle).
+      // Adopt the agent's fresh surface — choice cards, recommendations OR discovered places.
+      const choices = data.order?.choices;
       const spotlight = data.order?.spotlight;
       const discovery = data.order?.discovery;
-      if (spotlight || discovery) {
-        setOrder((o) => ({ ...o, ...(spotlight ? { spotlight } : {}), ...(discovery ? { discovery } : {}) }));
+      if (choices || spotlight || discovery) {
+        setOrder((o) => {
+          const n = { ...o };
+          if (choices) { n.choices = choices; delete n.spotlight; delete n.discovery; }
+          else {
+            if (spotlight) { n.spotlight = spotlight; delete n.choices; delete n.discovery; }
+            if (discovery) { n.discovery = discovery; delete n.choices; delete n.spotlight; }
+          }
+          return n;
+        });
         setTab("chat");
       }
     } catch {
@@ -182,10 +195,13 @@ export default function Home() {
     queueReaction(`chose the venue "${v.name}"`);
   }
 
-  // Custom events: add multiple discovered places (stay + food + transport + activity).
+  // Custom events keep multiple places (stay + food + transport). Other events pick ONE
+  // venue: selecting it replaces any prior one AND clears the list so it disappears and
+  // the agent moves on to the next category.
   function handleAddPlace(v: Venue) {
+    const isCustom = orderRef.current.eventType === "custom";
     const present = orderRef.current.lines.some((l) => l.itemId === `venue:${v.placeId}`);
-    setOrder((o) => addVenue(o, v));
+    setOrder((o) => (isCustom ? addVenue(o, v) : clearDiscovery(selectVenue(o, v))));
     if (!present) queueReaction(`chose the place "${v.name}"`);
   }
 
@@ -206,23 +222,57 @@ export default function Home() {
     setTab("chat");
   }
 
-  function pickEvent(id: EventTypeId) {
-    closeShownRef.current = false;
-    setOrder(setEventType(emptyOrder(lang), id));
-    const q = eventById(id)?.steps[0]?.question;
-    if (q) setMessages([{ role: "assistant", content: tr(q, lang) }]);
-    setTab("chat");
-  }
-
-  async function send(text: string) {
-    const next: ChatMessage[] = [...messages, { role: "user", content: text }];
-    setMessages(next);
+  /** Run one agent turn driven by a hidden system instruction (not shown in chat). */
+  async function kickAgent(baseOrder: OrderState, instruction: string, baseMsgs: ChatMessage[]) {
     setLoading(true);
     setStatus(null);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
-      const data = await streamChat({ messages: next, order }, setStatus, ctrl.signal);
+      const data = await streamChat({ messages: [...baseMsgs, { role: "user", content: instruction }], order: baseOrder }, setStatus, ctrl.signal);
+      if (data.order) setOrder(data.order);
+      if (data.assistantMessage) setMessages([...baseMsgs, { role: "assistant", content: data.assistantMessage }]);
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+      setStatus(null);
+    }
+  }
+
+  async function pickEvent(id: EventTypeId) {
+    closeShownRef.current = false;
+    const base = setEventType(emptyOrder(lang), id);
+    setOrder(base);
+    setMessages([]);
+    setTab("chat");
+    // Agent starts the conversation itself: greet + ask the CITY with choice cards.
+    await kickAgent(
+      base,
+      `[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. The customer just chose their event type. Greet in ONE short warm line and IMMEDIATELY ask the FIRST question — the CITY — by calling ask_choice with input:"text" and quick options: Constanța, București, Cluj-Napoca, Iași, Timișoara, Brașov. Ask nothing else and do NOT search venues yet.]`,
+      []
+    );
+  }
+
+  /** Answer a choice card; deterministically capture unambiguous values (date). */
+  function answerChoice(label: string) {
+    const cur = orderRef.current;
+    const base = cur.choices?.input === "date" ? setContext(cur, { date: label }) : cur;
+    send(label, base);
+  }
+
+  async function send(text: string, baseOrder?: OrderState) {
+    const next: ChatMessage[] = [...messages, { role: "user", content: text }];
+    setMessages(next);
+    // The customer is answering — drop the previous question's cards immediately
+    // so a stale surface never lingers a step behind the chat.
+    setOrder((o) => clearChoices(baseOrder ?? o));
+    setLoading(true);
+    setStatus(null);
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    try {
+      const data = await streamChat({ messages: next, order: baseOrder ?? orderRef.current }, setStatus, ctrl.signal);
       if (data.order) {
         setOrder(data.order);
         if (data.order.spotlight?.length || data.order.discovery?.venues?.length) setTab("chat");
@@ -310,25 +360,14 @@ export default function Home() {
     }
   }
 
-  async function runClose() {
+  /** The agent applies the unlocked discount + a conditional free gift, framed in products. */
+  async function runSupplierDeal() {
     const ro = lang === "ro";
-    setTab("chat");
-    setLoading(true);
-    // Theatrical "calling the owner" sequence (~12s of suspense, shown live).
-    const stages = ro
-      ? ["🔎 Caut la furnizorii noștri o ofertă mai bună pentru tine…", "⏳ Verific reducerile disponibile la parteneri…", "✅ Am găsit ceva!", "🎉 Am deblocat un discount special pentru pachetul tău!"]
-      : ["🔎 Searching our partner suppliers for a better deal…", "⏳ Checking available discounts across partners…", "✅ Found something!", "🎉 Unlocked a special discount on your package!"];
-    for (let i = 0; i < stages.length; i++) {
-      setStatus(stages[i]);
-      await new Promise((r) => setTimeout(r, i < stages.length - 1 ? 3500 : 1400));
-    }
-    setStatus(null);
-
-    // Now the agent frames the deal in PRODUCTS (not raw prices) and locks the discount.
     const instr = `[SYSTEM NOTE (always English) — reply ONLY in ${ro ? "Romanian" : "English"} and do NOT call set_language. You've just run an extended search across partner suppliers and UNLOCKED a special discount (no fake phone calls — frame it as "I searched our suppliers and unlocked a deal"). In their language, 2-3 short warm sentences framed in PRODUCTS — never raw percentages:
 1) CALL negotiate_discount(5), and JUSTIFY it with a specific item ALREADY in their package: "because you chose **<one item they already have>**, I unlocked a special discount on the whole package" (don't quote the % coldly).
 2) Then a conditional gift the supplier offers: "and there's more — if you ALSO add **<Z: a nicer/pricier item they DON'T have yet>**, you get **<W: a smaller delight, ~€100-200>** for FREE". recommend_items Z and W so they appear on screen to tap.
 Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
+    setLoading(true);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
@@ -343,19 +382,29 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
     }
   }
 
-  async function confirm() {
-    // First press of Finalize → the agent runs a closing negotiation (deal + upsell).
-    if (!closeShownRef.current && quote.total > 0) {
-      closeShownRef.current = true;
-      await runClose();
-      return;
+  /** Modal "unlock a deal": theatrical supplier search, then the agent locks the discount. */
+  async function unlockDeal() {
+    closeShownRef.current = true;
+    setCheckout("searching");
+    const ro = lang === "ro";
+    const stages = ro
+      ? ["🔎 Caut la furnizorii noștri o ofertă mai bună…", "⏳ Verific reducerile disponibile la parteneri…", "✅ Am găsit ceva!", "🎉 Am deblocat un discount special!"]
+      : ["🔎 Searching our partner suppliers…", "⏳ Checking available partner discounts…", "✅ Found something!", "🎉 Unlocked a special discount!"];
+    for (let i = 0; i < stages.length; i++) {
+      setDealStatus(stages[i]);
+      await new Promise((r) => setTimeout(r, i < stages.length - 1 ? 2800 : 1200));
     }
+    await runSupplierDeal();
+    setCheckout("deal");
+  }
+
+  async function doBook() {
     setConfirming(true);
     try {
       const res = await fetch("/api/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order }),
+        body: JSON.stringify({ order: orderRef.current }),
       });
       const data = await res.json();
       if (data.id) router.push(`/booking/${data.id}`);
@@ -363,6 +412,16 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
     } catch {
       setConfirming(false);
     }
+  }
+
+  async function confirm() {
+    if (checkout) return; // modal already open — never stack/repeat it
+    // First press of Finalize → open the checkout modal (sure-you-don't-want + unlock a deal).
+    if (!closeShownRef.current && quote.total > 0) {
+      setCheckout("ask");
+      return;
+    }
+    await doBook();
   }
 
   const isLast = evt ? order.stepIndex >= evt.steps.length - 1 : false;
@@ -377,7 +436,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
       options={order.choices.options}
       input={order.choices.input}
       lang={lang}
-      onPick={(l) => send(l)}
+      onPick={answerChoice}
       onOther={openOther}
     />
   ) : order.spotlight && order.spotlight.length > 0 ? (
@@ -423,8 +482,11 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
             {/* Conversation — chat + inline choice/venue/product cards in ONE column */}
             <section className={`card-soft ${show("chat")} ${paneH} flex-col p-4 lg:col-span-8`}>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <PanelTitle>💬 {t("brand", lang)}</PanelTitle>
-                <SocialProof lang={lang} />
+                <div className="flex items-center gap-2">
+                  <PanelTitle>💬 {t("brand", lang)}</PanelTitle>
+                  <SocialProof lang={lang} />
+                </div>
+                <RunningTotal total={quote.total} budget={order.context.budget} lang={lang} />
               </div>
               <div className="min-h-0 flex-1">
                 <Chat
@@ -458,9 +520,132 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
               />
             </section>
           </div>
+
+          <AnimatePresence>
+            {checkout && (
+              <CheckoutModal
+                stage={checkout}
+                dealStatus={dealStatus}
+                suggested={checkout === "ask" ? suggestedExtra(order) : undefined}
+                total={quote.total}
+                lang={lang}
+                confirming={confirming}
+                onAdd={(id) => handleToggle(id)}
+                onUnlock={unlockDeal}
+                onFinalize={() => { setCheckout(null); doBook(); }}
+                onClose={() => setCheckout(null)}
+              />
+            )}
+          </AnimatePresence>
         </>
       )}
     </main>
+  );
+}
+
+function suggestedExtra(order: OrderState): CatalogItem | undefined {
+  const have = new Set(order.lines.map((l) => l.itemId));
+  const ev = order.eventType;
+  const pool = CATALOG.filter(
+    (i) => (i.eventTypes.length === 0 || (ev && i.eventTypes.includes(ev))) && !have.has(i.id)
+  );
+  return pool.find((i) => i.popular) ?? pool[0];
+}
+
+function CheckoutModal({
+  stage,
+  dealStatus,
+  suggested,
+  total,
+  lang,
+  confirming,
+  onAdd,
+  onUnlock,
+  onFinalize,
+  onClose,
+}: {
+  stage: "ask" | "searching" | "deal";
+  dealStatus: string;
+  suggested?: CatalogItem;
+  total: number;
+  lang: Lang;
+  confirming: boolean;
+  onAdd: (id: string) => void;
+  onUnlock: () => void;
+  onFinalize: () => void;
+  onClose: () => void;
+}) {
+  const ro = lang === "ro";
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-3 backdrop-blur-sm"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={stage === "searching" ? undefined : onClose}
+    >
+      <motion.div
+        className="w-full max-w-md overflow-hidden rounded-3xl bg-card p-6 shadow-2xl"
+        initial={{ scale: 0.95, y: 14 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-1 flex items-center justify-between">
+          <h3 className="text-display text-xl text-ink">{ro ? "Aproape gata 🎉" : "Almost there 🎉"}</h3>
+          <span className="rounded-full bg-gold/10 px-3 py-1 text-[13px] font-medium text-gold-deep">{money(total)}</span>
+        </div>
+
+        {stage === "ask" && (
+          <div className="space-y-4">
+            {suggested ? (
+              <div className="rounded-2xl border border-gold/25 bg-gold/[0.05] p-4">
+                <p className="text-sm text-ink-soft">
+                  {ro ? "Ești sigur că nu vrei și " : "Sure you don't want "}
+                  <span className="font-semibold text-ink">{tr(suggested.name, lang)}</span>
+                  {ro ? "? Mulți îl adaugă." : " too? Most people add it."}
+                  <span className="ml-1 text-gold-deep">({money(suggested.price)}{suggested.unit !== "flat" ? (ro ? "/buc" : "/ea") : ""})</span>
+                </p>
+                <button onClick={() => onAdd(suggested.id)} className="btn-gold mt-3 w-full rounded-full py-2.5 text-sm font-semibold">
+                  ➕ {ro ? "Adaugă-l" : "Add it"}
+                </button>
+              </div>
+            ) : null}
+
+            <button onClick={onUnlock} className="w-full rounded-full bg-ink py-3 text-sm font-semibold text-ivory transition hover:bg-ink/90">
+              🔓 {ro ? "Caută-mi o ofertă mai bună" : "Unlock me a better deal"}
+            </button>
+            <button onClick={onFinalize} disabled={confirming} className="btn-gold w-full rounded-full py-3 text-sm font-semibold disabled:opacity-50">
+              {confirming ? "…" : (ro ? `Finalizează acum · ${money(total)}` : `Finalize now · ${money(total)}`)}
+            </button>
+            <button onClick={onClose} className="w-full text-center text-[13px] text-ink-soft hover:text-ink">
+              {ro ? "Mai văd" : "Keep looking"}
+            </button>
+          </div>
+        )}
+
+        {stage === "searching" && (
+          <div className="flex flex-col items-center gap-4 py-8 text-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-gold/30 border-t-gold" />
+            <p className="text-sm text-ink-soft">{dealStatus}</p>
+          </div>
+        )}
+
+        {stage === "deal" && (
+          <div className="space-y-4 py-2">
+            <div className="rounded-2xl border border-gold/30 bg-gold/[0.06] p-4 text-center">
+              <div className="text-3xl">🎉</div>
+              <p className="mt-2 text-sm text-ink">
+                {ro ? "Am deblocat un discount special — vezi oferta în chat." : "Unlocked a special discount — see the offer in the chat."}
+              </p>
+              <p className="mt-1 text-display text-2xl text-gold-deep">{money(total)}</p>
+            </div>
+            <button onClick={onFinalize} disabled={confirming} className="btn-gold w-full rounded-full py-3 text-sm font-semibold disabled:opacity-50">
+              {confirming ? "…" : (ro ? `Finalizează · ${money(total)}` : `Finalize · ${money(total)}`)}
+            </button>
+            <button onClick={onClose} className="w-full text-center text-[13px] text-ink-soft hover:text-ink">
+              {ro ? "Mai adaug ceva" : "Add something more"}
+            </button>
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -508,6 +693,32 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
 
 function PanelTitle({ children }: { children: React.ReactNode }) {
   return <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-deep/80">{children}</h2>;
+}
+
+/** Always-visible running cost, with a budget bar when a budget is set. */
+function RunningTotal({ total, budget, lang }: { total: number; budget?: number; lang: Lang }) {
+  if (!budget) {
+    return (
+      <span className="rounded-full border border-gold/25 bg-gold/8 px-3 py-1 text-[12px] font-medium text-gold-deep">
+        {lang === "ro" ? "Total" : "Total"}: <span className="text-display">{money(total)}</span>
+      </span>
+    );
+  }
+  const pct = Math.min(100, Math.round((total / budget) * 100));
+  const over = total > budget;
+  return (
+    <div className="min-w-[150px]">
+      <div className="flex items-center justify-between text-[11px]">
+        <span className={over ? "font-semibold text-wine" : "text-ink-soft"}>
+          {money(total)} / {money(budget)}
+        </span>
+        <span className={over ? "text-wine" : "text-gold-deep"}>{over ? (lang === "ro" ? "peste buget" : "over") : `${pct}%`}</span>
+      </div>
+      <div className="mt-0.5 h-1.5 w-full overflow-hidden rounded-full bg-ink/8">
+        <div className={`h-full rounded-full transition-all ${over ? "bg-wine" : "bg-gold"}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
 }
 
 function detectLang(text: string): Lang {
