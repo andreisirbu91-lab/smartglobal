@@ -20,6 +20,8 @@ export type BookingRecord = {
   language: string;
   status: string;
   paid?: boolean;
+  /** Simulated SmartBill invoice issued on deposit payment. */
+  invoice?: { series: string; number: number; issuedAt: string; deposit: number };
   created_at: string;
 };
 
@@ -47,18 +49,32 @@ export async function saveBooking(record: BookingRecord): Promise<void> {
   await writeFile(fileFor(record.id), JSON.stringify(record), "utf8");
 }
 
-export async function markPaid(id: string): Promise<void> {
-  if (supabase) {
-    await supabase.from("bookings").update({ paid: true, status: "paid" }).eq("id", id);
-    return;
-  }
+const hashNum = (s: string) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return (Math.abs(h) % 900000) + 100000; // stable 6-digit
+};
+
+/** A SmartBill-style invoice for a booking (simulation — no real SmartBill call). */
+export function buildInvoice(rec: BookingRecord): NonNullable<BookingRecord["invoice"]> {
+  return { series: "SGA", number: hashNum(rec.ref || rec.id), issuedAt: new Date().toISOString(), deposit: Math.round(rec.total * 0.2) };
+}
+
+/** Mark paid and issue the SmartBill invoice. Returns the invoice for the receipt. */
+export async function markPaid(id: string): Promise<BookingRecord["invoice"] | null> {
   const rec = await getBooking(id);
-  if (rec) {
-    rec.paid = true;
-    rec.status = "paid";
-    await mkdir(DATA_DIR, { recursive: true });
-    await writeFile(fileFor(id), JSON.stringify(rec), "utf8");
+  if (!rec) return null;
+  const invoice = rec.invoice ?? buildInvoice(rec);
+  if (supabase) {
+    await supabase.from("bookings").update({ paid: true, status: "paid", invoice }).eq("id", id);
+    return invoice;
   }
+  rec.paid = true;
+  rec.status = "paid";
+  rec.invoice = invoice;
+  await mkdir(DATA_DIR, { recursive: true });
+  await writeFile(fileFor(id), JSON.stringify(rec), "utf8");
+  return invoice;
 }
 
 export async function getBooking(id: string): Promise<BookingRecord | null> {

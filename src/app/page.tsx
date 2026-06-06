@@ -302,19 +302,23 @@ export default function Home() {
     setStatus(null);
   }
 
-  async function fireReaction() {
-    const labels = pendingRef.current;
-    pendingRef.current = [];
-    if (!labels.length) return;
-    const instruction = `[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and briefly (1 short sentence). Then you MUST move the screen forward to a DIFFERENT category by calling **recommend_tiers** (cumulative tiers) for the NEXT not-yet-covered category — NEVER use recommend_items here, and never re-show a category in CATEGORIES ALREADY IN THE PACKAGE or the same set they just picked from. If a venue was chosen, go to the first service category. If every category is covered, ask for name+email to finalize. ALWAYS end by surfacing something new (recommend_tiers / discover_places / ask_choice). NEVER re-ask anything already set; do NOT re-add items already added.]`;
+  const nudgeRef = useRef(0);
+
+  function hasSurface(o?: OrderState | null) {
+    return !!(o && (o.tiers?.options?.length || o.choices?.options?.length || o.spotlight?.length || o.discovery?.venues?.length));
+  }
+
+  /** Run one agent turn with a system instruction; adopt any surface; then keep the flow moving. */
+  async function runTurn(instruction: string) {
     setLoading(true);
     setStatus(null);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+    let resultOrder: OrderState | undefined;
     try {
       const data = await streamChat({ messages: [...messagesRef.current, { role: "user", content: instruction }], order: orderRef.current }, setStatus, ctrl.signal);
+      resultOrder = data.order;
       if (data.assistantMessage) setMessages((m) => [...m, { role: "assistant", content: data.assistantMessage! }]);
-      // Adopt the agent's fresh surface — tiers, choice cards, recommendations OR discovered places.
       const tiers = data.order?.tiers;
       const choices = data.order?.choices;
       const spotlight = data.order?.spotlight;
@@ -337,6 +341,25 @@ export default function Home() {
       setLoading(false);
       setStatus(null);
     }
+    await keepMoving(resultOrder ?? orderRef.current);
+  }
+
+  async function fireReaction() {
+    const labels = pendingRef.current;
+    pendingRef.current = [];
+    if (!labels.length) return;
+    nudgeRef.current = 0;
+    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and briefly (1 short sentence). Then you MUST move the screen forward to a DIFFERENT category by calling **recommend_tiers** (cumulative tiers) for the NEXT not-yet-covered category — NEVER use recommend_items here, and never re-show a category in CATEGORIES ALREADY IN THE PACKAGE or the same set they just picked from. If a venue was chosen, go to the first service category. If every category is covered, ask for name+email to finalize. ALWAYS end by surfacing something new (recommend_tiers / discover_places / ask_choice). NEVER re-ask anything already set; do NOT re-add items already added.]`);
+  }
+
+  /** Never let the flow stall: if a turn ended with nothing on screen, push the agent to continue. */
+  async function keepMoving(o: OrderState) {
+    if (hasSurface(o)) { nudgeRef.current = 0; return; }
+    if (!o.eventType) return;                               // pre-event: agent's own flow handles it
+    if (o.contact?.name && o.contact?.email) return;        // ready to finalize — nothing to surface
+    if (nudgeRef.current >= 2) return;                      // never loop forever
+    nudgeRef.current++;
+    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"}. The screen is EMPTY — you ended a turn without putting anything on screen, which is NOT allowed. In ONE short sentence, continue the plan, then IMMEDIATELY call a tool that surfaces something: recommend_tiers for the NEXT not-yet-covered category (check CATEGORIES ALREADY IN THE PACKAGE — never repeat one), or ask_choice, or — if every category is already covered — ask for the customer's name & email to finalize. Do NOT stop without a surface.]`);
   }
 
   function queueReaction(label: string) {
@@ -445,10 +468,13 @@ export default function Home() {
     setOrder((o) => clearTiers(clearChoices(baseOrder ?? o)));
     setLoading(true);
     setStatus(null);
+    nudgeRef.current = 0;
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+    let resultOrder: OrderState | undefined;
     try {
       const data = await streamChat({ messages: next, order: baseOrder ?? orderRef.current }, setStatus, ctrl.signal);
+      resultOrder = data.order;
       if (data.order) {
         setOrder(data.order);
         if (data.order.spotlight?.length || data.order.discovery?.venues?.length) setTab("chat");
@@ -460,6 +486,7 @@ export default function Home() {
       setLoading(false);
       setStatus(null);
     }
+    await keepMoving(resultOrder ?? orderRef.current);
   }
 
   async function startFromText(text: string) {
@@ -473,8 +500,10 @@ export default function Home() {
     setStatus(null);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+    let resultOrder: OrderState | undefined;
     try {
       const data = await streamChat({ messages: [userMsg], order: { ...orderRef.current, language: detected } }, setStatus, ctrl.signal);
+      resultOrder = data.order;
       if (data.order) setOrder(data.order);
       setMessages([userMsg, { role: "assistant", content: data.assistantMessage ?? "…" }]);
     } catch {
@@ -483,6 +512,7 @@ export default function Home() {
       setLoading(false);
       setStatus(null);
     }
+    await keepMoving(resultOrder ?? orderRef.current);
   }
 
   async function toggleLang() {

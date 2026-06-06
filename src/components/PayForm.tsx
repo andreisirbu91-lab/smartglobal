@@ -14,7 +14,8 @@ const L = {
   deposit: { en: "Deposit (20%)", ro: "Avans (20%)" },
   total: { en: "Package total", ro: "Total pachet" },
   demo: { en: "Demo checkout — no real payment is taken.", ro: "Checkout demo — nu se încasează bani reali." },
-  secure: { en: "Secured by Stripe (demo)", ro: "Securizat de Stripe (demo)" },
+  secure: { en: "Processed via SmartBill (demo)", ro: "Procesat prin SmartBill (demo)" },
+  invoiceNote: { en: "A SmartBill proforma invoice is issued automatically.", ro: "Se emite automat factura proformă SmartBill." },
 };
 const tr = (k: keyof typeof L, lang: Lang) => L[k][lang];
 
@@ -71,6 +72,7 @@ export function PayForm({ id, deposit, total, ref_, lang }: { id: string; deposi
           {loading ? tr("paying", lang) : `${tr("pay", lang)} · ${money(deposit)}`}
         </button>
         <p className="text-center text-[11px] text-ink-soft">🔒 {tr("secure", lang)}</p>
+        <p className="text-center text-[11px] text-ink-soft">🧾 {tr("invoiceNote", lang)}</p>
         <p className="text-center text-[11px] text-gold-deep">{tr("demo", lang)}</p>
       </div>
 

@@ -24,6 +24,7 @@ import {
 import { CATALOG, CATEGORIES, EVENT_TYPES, eventById, itemById } from "./catalog";
 import { searchVenues } from "./places";
 import { proposePackage } from "./agents";
+import { lookupInfo } from "./knowledge";
 import type { CategoryId, EventTypeId, OrderState, Unit, Venue } from "./types";
 
 export const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
@@ -294,6 +295,14 @@ export const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: "function",
     function: { name: "get_quote", description: "Return the current itemized quote and totals.", parameters: { type: "object", properties: {} } },
   },
+  {
+    type: "function",
+    function: {
+      name: "company_info",
+      description: "Look up operational facts (payment/SmartBill, minimum participants, what's included, photo-session locations, partner venues, artists, service area, changes/reschedule, contact, discounts) so you ALWAYS have an answer. Call this whenever the customer asks something you're not certain about. Use the returned text to reply. NEVER tell the customer you can't help — if even this has no exact answer, offer to confirm with the team and follow up by email.",
+      parameters: { type: "object", properties: { topic: { type: "string", description: "The customer's question or keywords, e.g. 'deposit', 'minimum graduates', 'photo location', 'can we change the date'." } }, required: ["topic"] },
+    },
+  },
 ];
 
 type ToolResult = { state: OrderState; result: unknown };
@@ -493,6 +502,9 @@ export async function executeTool(
 
     case "get_quote":
       return { state, result: { ok: true, quote: computeQuote(state), stepIndex: state.stepIndex } };
+
+    case "company_info":
+      return { state, result: { ok: true, info: lookupInfo(String(args.topic ?? ""), state.language) } };
 
     default:
       return { state, result: { ok: false, error: `Unknown tool ${name}` } };

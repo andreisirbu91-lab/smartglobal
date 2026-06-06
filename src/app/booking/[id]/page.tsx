@@ -114,10 +114,18 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
 
           {!isDraft && (
             <>
-              {/* Deposit (demo Stripe) */}
+              {/* Deposit (demo SmartBill) */}
               <div className="no-print rounded-2xl border border-gold/25 bg-gold/5 p-4 text-center">
                 {booking.paid ? (
-                  <p className="text-sm font-medium text-green-700">✓ {tr(L.depositPaid, lang)}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-green-700">✓ {tr(L.depositPaid, lang)}</p>
+                    {booking.invoice && (
+                      <p className="text-[12px] text-ink-soft">
+                        🧾 {lang === "ro" ? "Factură SmartBill" : "SmartBill invoice"} {booking.invoice.series} nr. {booking.invoice.number} · {money(booking.invoice.deposit)}
+                        {" · "}{new Date(booking.invoice.issuedAt).toLocaleDateString(lang === "ro" ? "ro-RO" : "en-GB")}
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <>
                     <p className="mb-2 text-[13px] text-ink-soft">{tr(L.depositNote, lang)}</p>
