@@ -179,7 +179,7 @@ export const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "recommend_tiers",
-      description: "Show 2-3 ESCALATING bundle tiers for ONE category as tappable cards — each tier CUMULATIVELY adds products: e.g. 'Photo-Video' / 'Photo-Video + Booth' / 'Photo-Video + Booth + Drone'; or 'Welcome cocktail' / '+ Breezers'; or 'Cap' / 'Cap + Gown' / 'Cap + Gown + Diplomas'. You pick which catalog items go in each tier; the engine prices them. Picking a tier adds ALL its items. Use this for service categories instead of listing single items.",
+      description: "Show 2-3 tiers as tappable cards. Either ESCALATING bundles (each tier cumulatively adds products: 'Photo-Video' / '+ Booth' / '+ Drone') OR ALTERNATIVE package LEVELS where each tier is its own single item (e.g. graduation packages: [{label:'Base',itemIds:['sga_base']},{label:'Expert',itemIds:['sga_expert']},{label:'VIP',itemIds:['sga_vip']}]). You pick which catalog ids go in each tier; the engine prices them. Picking a tier adds ALL its items. Use this for any multi-option decision instead of listing single items.",
       parameters: {
         type: "object",
         properties: {
