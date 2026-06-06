@@ -71,19 +71,21 @@ export function ChoiceCards({
       )}
 
       {options.length > 0 && (
-        <div className="grid gap-2.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))" }}>
+        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))" }}>
           {options.map((o, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
               onClick={() => onPick(o.label)}
-              className={`group flex min-h-[96px] cursor-pointer flex-col items-start gap-2 rounded-[0.9rem] border bg-card p-5 text-left shadow-[0_1px_2px_rgba(38,35,32,.03),0_18px_42px_-30px_rgba(38,35,32,.3)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-28px_rgba(177,144,76,.42)] ${winner === o.label ? "border-gold/60 ring-1 ring-gold/25" : "border-gold/20 hover:border-gold/55"}`}
+              className={`group relative flex min-h-[128px] cursor-pointer flex-col items-start gap-2 overflow-hidden rounded-2xl border bg-gradient-to-br from-card to-ivory/40 p-6 text-left shadow-[0_1px_2px_rgba(38,35,32,.04),0_22px_50px_-32px_rgba(38,35,32,.34)] transition hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(177,144,76,.5)] ${winner === o.label ? "border-gold/60 ring-1 ring-gold/30" : "border-gold/20 hover:border-gold/55"}`}
             >
-              <span className="text-display text-[13px] text-gold-deep">{String(i + 1).padStart(2, "0")}</span>
-              <span className="text-display text-[16px] leading-tight text-ink">{o.label}</span>
-              {o.desc && <span className="text-[12.5px] leading-snug text-ink-soft">{o.desc}</span>}
+              <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-gold/10 blur-2xl transition group-hover:bg-gold/20" />
+              <span className="text-display text-[15px] text-gold-deep">{String(i + 1).padStart(2, "0")}</span>
+              <span className="text-display text-[20px] leading-tight text-ink">{o.label}</span>
+              {o.desc && <span className="text-[13px] leading-snug text-ink-soft">{o.desc}</span>}
+              <span className="mt-auto text-[13px] font-medium text-gold-deep opacity-0 transition group-hover:opacity-100">{lang === "ro" ? "Alege" : "Choose"} →</span>
               {voting && <div className="w-full"><VoteBar id={o.label} voting={voting} lang={lang} winner={winner === o.label} /></div>}
             </motion.div>
           ))}
