@@ -544,7 +544,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   // The agent's current surface, rendered inline in the conversation under the chat.
   const skipCategory = (
     <button
-      onClick={() => send(lang === "ro" ? "sări peste această categorie, mergem mai departe" : "skip this category, let's move on")}
+      onClick={() => send(lang === "ro" ? "sări peste categoria asta — arată-mi următoarea categorie DIFERITĂ, nu aceeași" : "skip this category — show me the NEXT, DIFFERENT category, not the same one")}
       className="text-[13px] text-ink-soft underline-offset-2 transition hover:text-ink hover:underline"
     >
       {lang === "ro" ? "Sari peste această categorie →" : "Skip this category →"}
@@ -596,6 +596,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
             : v.estFlatPrice
               ? `${t("from", lang)} ${money(v.estFlatPrice)}`
               : undefined,
+          href: v.mapsUrl,
         }))}
         onSelect={(id) => {
           const v = order.discovery!.venues.find((x) => `venue:${x.placeId}` === id);

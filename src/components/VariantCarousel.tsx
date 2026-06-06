@@ -9,6 +9,7 @@ export type CarouselItem = {
   title: string;
   subtitle?: string;
   price?: string;
+  href?: string;
 };
 
 /**
@@ -119,6 +120,11 @@ export function VariantCarousel({
           </div>
           <div className="flex shrink-0 items-center gap-3">
             {focus.price && <span className="text-display text-[15px] text-gold-deep">{focus.price}</span>}
+            {focus.href && (
+              <a href={focus.href} target="_blank" rel="noopener noreferrer" className="text-[12px] text-ink-soft underline-offset-2 hover:text-ink hover:underline">
+                {lang === "ro" ? "Detalii ↗" : "Details ↗"}
+              </a>
+            )}
             <button onClick={() => onSelect(focus.id)} className="btn-champagne px-4 py-2 text-[13px] font-medium">
               {selectedId === focus.id ? (lang === "ro" ? "Ales" : "Chosen") : (lang === "ro" ? "Alege" : "Choose")}
             </button>
