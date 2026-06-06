@@ -30,6 +30,8 @@ import {
 import { CatalogCard } from "@/components/CatalogCard";
 import { ChoiceCards } from "@/components/ChoiceCards";
 import { TierCards } from "@/components/TierCards";
+import { VariantCarousel } from "@/components/VariantCarousel";
+import { OnlineClassmates } from "@/components/OnlineClassmates";
 import { money, tr } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { Chat, type ChatMessage } from "@/components/Chat";
@@ -574,15 +576,33 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
       {skipCategory}
     </div>
   ) : order.discovery?.venues?.length ? (
-    <VenueStep
-      query=""
-      city={order.context.city ?? ""}
-      lang={lang}
-      headerLabel={order.discovery.query}
-      presetVenues={order.discovery.venues}
-      selectedIds={venueIds}
-      onSelect={handleAddPlace}
-    />
+    <div className="space-y-2">
+      {order.discovery.query && (
+        <div className="space-y-2">
+          <div className="rule-gold" />
+          <h3 className="text-display text-[22px] leading-tight text-ink">{order.discovery.query}</h3>
+        </div>
+      )}
+      <VariantCarousel
+        lang={lang}
+        selectedId={[...venueIds][0]}
+        items={order.discovery.venues.map((v) => ({
+          id: `venue:${v.placeId}`,
+          src: v.photoUrl,
+          title: v.name,
+          subtitle: v.rating ? `★ ${v.rating}${v.reviews ? ` · ${v.reviews} ${t("reviews", lang)}` : ""}` : v.address,
+          price: v.estPricePerGuest
+            ? `${money(v.estPricePerGuest)}/${t("perGuest", lang)}`
+            : v.estFlatPrice
+              ? `${t("from", lang)} ${money(v.estFlatPrice)}`
+              : undefined,
+        }))}
+        onSelect={(id) => {
+          const v = order.discovery!.venues.find((x) => `venue:${x.placeId}` === id);
+          if (v) handleAddPlace(v);
+        }}
+      />
+    </div>
   ) : null;
 
   return (
@@ -609,8 +629,18 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
           <div className="grid flex-1 gap-4 lg:grid-cols-12">
             {/* Conversation — chat + inline choice/venue/product cards in ONE column */}
             <section className={`card-soft ${show("chat")} ${paneH} flex-col p-4 lg:col-span-8`}>
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <PanelTitle>{t("brand", lang)}</PanelTitle>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <PanelTitle>{t("brand", lang)}</PanelTitle>
+                  <OnlineClassmates
+                    lang={lang}
+                    label={
+                      lang === "ro"
+                        ? order.eventType === "wedding" ? "cupluri online" : order.eventType === "custom" ? "persoane online" : "colegi online"
+                        : order.eventType === "wedding" ? "couples online" : order.eventType === "custom" ? "people online" : "classmates online"
+                    }
+                  />
+                </div>
                 <RunningTotal total={quote.total} budget={order.context.budget} lang={lang} />
               </div>
               <div className="min-h-0 flex-1">
@@ -744,7 +774,7 @@ function CheckoutModal({
             <button onClick={onUnlock} className="w-full rounded-full bg-ink py-3 text-sm font-semibold text-ivory transition hover:bg-ink/90">
               {ro ? "Caută-mi o ofertă mai bună" : "Unlock me a better deal"}
             </button>
-            <button onClick={onFinalize} disabled={confirming} className="btn-gold w-full rounded-full py-3 text-sm font-semibold disabled:opacity-50">
+            <button onClick={onFinalize} disabled={confirming} className="btn-champagne w-full py-3 text-sm font-semibold disabled:opacity-50">
               {confirming ? "…" : (ro ? `Finalizează acum · ${money(total)}` : `Finalize now · ${money(total)}`)}
             </button>
             <button onClick={onClose} className="w-full text-center text-[13px] text-ink-soft hover:text-ink">
@@ -798,7 +828,7 @@ function CheckoutModal({
               </div>
             )}
 
-            <button onClick={onFinalize} disabled={confirming} className="btn-gold w-full rounded-full py-3 text-sm font-semibold disabled:opacity-50">
+            <button onClick={onFinalize} disabled={confirming} className="btn-champagne w-full py-3 text-sm font-semibold disabled:opacity-50">
               {confirming ? "…" : (ro ? `Finalizează · ${money(total)}` : `Finalize · ${money(total)}`)}
             </button>
             <button onClick={onClose} className="w-full text-center text-[13px] text-ink-soft hover:text-ink">
