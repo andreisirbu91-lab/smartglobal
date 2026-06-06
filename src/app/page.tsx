@@ -106,6 +106,7 @@ export default function Home() {
   const [dealStatus, setDealStatus] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [collabActive, setCollabActive] = useState(0);
+  const [votes, setVotes] = useState<Record<string, string[]>>({});
   const clientIdRef = useRef<string>("");
   const sessionRevRef = useRef(0);
   const adoptingRef = useRef(false);
@@ -142,13 +143,36 @@ export default function Home() {
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // --- Collaborative shared sessions (share a link → plan together live) ---
-  function adopt(d: { order?: OrderState; messages?: ChatMessage[]; rev: number; active?: number }) {
+  function adopt(d: { order?: OrderState; messages?: ChatMessage[]; rev: number; active?: number; votes?: Record<string, string[]> }) {
     sessionRevRef.current = d.rev;
     if (d.active != null) setCollabActive(d.active);
+    if (d.votes) setVotes(d.votes);
     adoptingRef.current = true;
     if (d.order) setOrder(d.order);
     if (Array.isArray(d.messages) && d.messages.length) setMessages(d.messages);
     setTimeout(() => { adoptingRef.current = false; }, 60);
+  }
+
+  /** Toggle a group vote for an option (shared sessions). */
+  async function vote(optionId: string) {
+    if (!sessionId) return;
+    const me = clientIdRef.current;
+    setVotes((prev) => {
+      const next: Record<string, string[]> = {};
+      for (const k of Object.keys(prev)) next[k] = (prev[k] || []).filter((c) => c !== me);
+      const had = (prev[optionId] || []).includes(me);
+      next[optionId] = had ? next[optionId] || [] : [...(next[optionId] || []), me];
+      return next;
+    });
+    try {
+      const res = await fetch(`/api/session/${sessionId}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: me, optionId }),
+      });
+      const d = await res.json();
+      if (d.votes) setVotes(d.votes);
+      if (d.rev) sessionRevRef.current = Math.max(sessionRevRef.current, d.rev);
+    } catch { /* ignore */ }
   }
 
   function leaveDeadSession() {
@@ -218,6 +242,7 @@ export default function Home() {
         if (!res.ok) return;
         const d = await res.json();
         setCollabActive(d.active ?? 1);
+        if (d.votes) setVotes(d.votes);
         if (d.rev > sessionRevRef.current && d.lastWriter !== clientIdRef.current) adopt(d);
         else sessionRevRef.current = Math.max(sessionRevRef.current, d.rev);
       } catch { /* ignore */ }
@@ -555,6 +580,15 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   const show = (which: Tab) => (tab === which ? "flex" : "hidden") + " lg:flex";
 
   // The agent's current surface, rendered inline in the conversation under the chat.
+  const voting =
+    sessionId && collabActive > 1
+      ? {
+          count: (id: string) => votes[id]?.length ?? 0,
+          mine: (id: string) => votes[id]?.includes(clientIdRef.current) ?? false,
+          onVote: vote,
+        }
+      : undefined;
+
   const skipCategory = (
     <button
       onClick={() => send(lang === "ro" ? "sări peste categoria asta — arată-mi următoarea categorie DIFERITĂ, nu aceeași" : "skip this category — show me the NEXT, DIFFERENT category, not the same one")}
@@ -565,7 +599,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   );
   const surface = order.tiers?.options?.length ? (
     <div className="space-y-3">
-      <TierCards question={order.tiers.question} options={order.tiers.options} lang={lang} onPick={addTier} />
+      <TierCards question={order.tiers.question} options={order.tiers.options} lang={lang} onPick={addTier} voting={voting} />
       {skipCategory}
     </div>
   ) : order.choices?.options?.length ? (
@@ -576,6 +610,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
       lang={lang}
       onPick={answerChoice}
       onOther={openOther}
+      voting={voting}
     />
   ) : order.spotlight && order.spotlight.length > 0 ? (
     <div className="space-y-3">
@@ -615,6 +650,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
           const v = order.discovery!.venues.find((x) => `venue:${x.placeId}` === id);
           if (v) handleAddPlace(v);
         }}
+        voting={voting}
       />
     </div>
   ) : null;

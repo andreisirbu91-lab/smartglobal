@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/lib/types";
+import { topVoted, type Voting } from "@/components/voting";
 
 export type CarouselItem = {
   id: string;
@@ -22,12 +23,15 @@ export function VariantCarousel({
   selectedId,
   onSelect,
   lang,
+  voting,
 }: {
   items: CarouselItem[];
   selectedId?: string;
   onSelect: (id: string) => void;
   lang: Lang;
+  voting?: Voting;
 }) {
+  const winner = voting ? topVoted(items.map((it) => it.id), voting.count) : null;
   const [base, setBase] = useState(0);
   const [hover, setHover] = useState(false);
   const [mouse, setMouse] = useState({ x: 0.5 });
@@ -105,6 +109,11 @@ export function VariantCarousel({
                   {item.price && <div className="text-[10px] text-white/85">{item.price}</div>}
                 </div>
                 {sel && <div className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-gold text-[11px] text-white">✓</div>}
+                {voting && voting.count(item.id) > 0 && (
+                  <div className={`absolute left-1.5 top-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${winner === item.id ? "bg-gold text-white" : "bg-white/90 text-ink"}`}>
+                    {voting.count(item.id)} {lang === "ro" ? "vot" : ""}{winner === item.id ? " ★" : ""}
+                  </div>
+                )}
               </button>
             );
           })}
@@ -124,6 +133,14 @@ export function VariantCarousel({
               <a href={focus.href} target="_blank" rel="noopener noreferrer" className="text-[12px] text-ink-soft underline-offset-2 hover:text-ink hover:underline">
                 {lang === "ro" ? "Detalii ↗" : "Details ↗"}
               </a>
+            )}
+            {voting && (
+              <button
+                onClick={() => voting.onVote(focus.id)}
+                className={`rounded-full border px-3 py-2 text-[12px] font-medium transition ${voting.mine(focus.id) ? "border-gold bg-gold/12 text-gold-deep" : "border-ink/15 text-ink-soft hover:border-gold"}`}
+              >
+                {voting.mine(focus.id) ? (lang === "ro" ? `✓ Votat (${voting.count(focus.id)})` : `✓ Voted (${voting.count(focus.id)})`) : (lang === "ro" ? `Votează (${voting.count(focus.id)})` : `Vote (${voting.count(focus.id)})`)}
+              </button>
             )}
             <button onClick={() => onSelect(focus.id)} className="btn-champagne px-4 py-2 text-[13px] font-medium">
               {selectedId === focus.id ? (lang === "ro" ? "Ales" : "Chosen") : (lang === "ro" ? "Alege" : "Choose")}

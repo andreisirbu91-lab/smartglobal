@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import type { ChoiceOption, Lang } from "@/lib/types";
 import { Calendar } from "@/components/Calendar";
+import { topVoted, VoteBar, type Voting } from "@/components/voting";
 
 export function ChoiceCards({
   question,
@@ -12,6 +13,7 @@ export function ChoiceCards({
   lang,
   onPick,
   onOther,
+  voting,
 }: {
   question?: string;
   options: ChoiceOption[];
@@ -19,7 +21,9 @@ export function ChoiceCards({
   lang: Lang;
   onPick: (label: string) => void;
   onOther: () => void;
+  voting?: Voting;
 }) {
+  const winner = voting ? topVoted(options.map((o) => o.label), voting.count) : null;
   const [val, setVal] = useState("");
   const [showCal, setShowCal] = useState(false);
 
@@ -69,18 +73,19 @@ export function ChoiceCards({
       {options.length > 0 && (
         <div className="grid gap-2.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))" }}>
           {options.map((o, i) => (
-            <motion.button
+            <motion.div
               key={i}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
               onClick={() => onPick(o.label)}
-              className="group flex min-h-[96px] flex-col items-start gap-2 rounded-[0.9rem] border border-gold/20 bg-card p-5 text-left shadow-[0_1px_2px_rgba(38,35,32,.03),0_18px_42px_-30px_rgba(38,35,32,.3)] transition hover:-translate-y-0.5 hover:border-gold/55 hover:shadow-[0_24px_50px_-28px_rgba(177,144,76,.42)]"
+              className={`group flex min-h-[96px] cursor-pointer flex-col items-start gap-2 rounded-[0.9rem] border bg-card p-5 text-left shadow-[0_1px_2px_rgba(38,35,32,.03),0_18px_42px_-30px_rgba(38,35,32,.3)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-28px_rgba(177,144,76,.42)] ${winner === o.label ? "border-gold/60 ring-1 ring-gold/25" : "border-gold/20 hover:border-gold/55"}`}
             >
               <span className="text-display text-[13px] text-gold-deep">{String(i + 1).padStart(2, "0")}</span>
               <span className="text-display text-[16px] leading-tight text-ink">{o.label}</span>
               {o.desc && <span className="text-[12.5px] leading-snug text-ink-soft">{o.desc}</span>}
-            </motion.button>
+              {voting && <div className="w-full"><VoteBar id={o.label} voting={voting} lang={lang} winner={winner === o.label} /></div>}
+            </motion.div>
           ))}
         </div>
       )}
