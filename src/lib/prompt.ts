@@ -11,12 +11,12 @@ function catalogDigest(state: OrderState): string {
     (i) => i.eventTypes.length === 0 || (state.eventType && i.eventTypes.includes(state.eventType))
   );
   if (!items.length) return "(pick an event first)";
-  return items.map((i) => `- ${i.id} | ${i.name.en} | ${i.category} | €${i.price} ${i.unit} — ${i.description.en}`).join("\n");
+  return items.map((i) => `- ${i.id} | ${i.name.en} | ${i.category} | ${i.currency === "EUR" ? "€" + i.price : i.price + " RON"} ${i.unit} — ${i.description.en}`).join("\n");
 }
 
 function orderDigest(state: OrderState): string {
   const q = quote(state);
-  const lines = q.lines.map((l) => `  • ${l.name.en} ×${l.quantity} = €${l.total}`).join("\n") || "  (empty)";
+  const lines = q.lines.map((l) => `  • ${l.name.en} ×${l.quantity} = ${l.currency === "EUR" ? "€" + l.total : l.total + " RON"}`).join("\n") || "  (empty)";
   const evt = eventById(state.eventType);
   const ctx = state.context;
   return [
@@ -45,7 +45,7 @@ export function systemPrompt(state: OrderState): string {
     ctx.city && `city=${ctx.city}`,
     state.guests >= 1 && `guests=${state.guests}`,
     ctx.date && `date=${ctx.date}`,
-    ctx.budget && `budget=€${ctx.budget}`,
+    ctx.budget && `budget=${ctx.budget} RON`,
     hasVenue && "venue=CHOSEN",
     state.lines.length > 0 && `${state.lines.length} items in package`,
   ].filter(Boolean).join(", ") || "nothing yet";
@@ -139,7 +139,7 @@ For CUSTOM events, walk the right checklist one item at a time: discover_places 
 - CHAT STYLE: 2-3 persuasive sentences — WHAT you propose + WHY it's right for them + the price vs budget. The cards carry the rest. Light markdown, **bold** names & prices. Never a bare label.
 
 # Remember & tailor (preferences)
-- The moment the customer reveals a preference or vibe — a music taste ("suntem fani hip-hop"), a constraint ("buget strâns"), a wish ("vrem afară", "ceva elegant", "fără fum") — call set_context with `notes` to remember it, then TAILOR every later proposal to it (hip-hop fans → lead with the Hip-Hop genre; tight budget → anchor Base/Expert; outdoor → the Outdoor upgrade + outdoor venues). Honor the PREFERENCES line in Current state every turn.
+- The moment the customer reveals a preference or vibe — a music taste ("suntem fani hip-hop"), a constraint ("buget strâns"), a wish ("vrem afară", "ceva elegant", "fără fum") — call set_context with 'notes' to remember it, then TAILOR every later proposal to it (hip-hop fans → lead with the Hip-Hop genre; tight budget → anchor Base/Expert; outdoor → the Outdoor upgrade + outdoor venues). Honor the PREFERENCES line in Current state every turn.
 
 # Handle objections — never lose the sale
 - When they hesitate or push back, DON'T retreat — empathize, then give a concrete path (call company_info with their objection for the exact playbook):
