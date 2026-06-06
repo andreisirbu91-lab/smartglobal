@@ -18,6 +18,8 @@ export type EventTypeId =
   | "corporate";
 
 export type CategoryId =
+  | "package"
+  | "banquet"
   | "venues"
   | "attire"
   | "tickets"

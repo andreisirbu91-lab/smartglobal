@@ -12,6 +12,35 @@ const U = (id: string) =>
 
 /** A distinct, well-matched photo per catalog item (real `item.image` overrides win). */
 const ITEM_PHOTOS: Record<string, string> = {
+  // ===== Star Global real catalog =====
+  sga_base: U("1523050854058-8df90110c9f1"),
+  sga_expert: U("1627556704302-624286467c65"),
+  sga_vip: U("1591197172062-c718f82aba20"),
+  sga_outdoor: U("1530103862676-de8c9debad1d"),
+  sga_banquet: U("1519671482749-fd09be7ccebf"),
+  toca_digital: U("1541339907198-e08756dedf3f"),
+  toca_painted: U("1564981797816-1043664bf78d"),
+  album_2020: U("1512820790803-83ca734da794"),
+  album_2030: U("1516979187457-637abb4f9353"),
+  album_plush: U("1543002588-bfa74002ed7e"),
+  album_leather: U("1544816155-12df9643f363"),
+  canvas: U("1513519245088-0e12902e35ca"),
+  prosecco_bar: U("1514362545857-3bc16c4c7d1b"),
+  wed_photo: U("1452587925148-ce544e77e70d"),
+  wed_music: U("1429962714451-bb934ecdc4ec"),
+  wed_decor: U("1478146896981-b80fe463b330"),
+  // artists — distinct concert/stage shots
+  art_cristi_stanciu: U("1571266028243-e4733b0f0bb0"),
+  art_maya_mar: U("1493676304819-0d7a8d026dcf"),
+  art_dara: U("1516450360452-9312f5e86fc7"),
+  art_florian_rus: U("1459749411175-04bf5292ceea"),
+  art_holy_molly: U("1470229722913-7c0e2dbbafd3"),
+  art_nicole_cherry: U("1501386761578-eac5c94b800a"),
+  art_antonia: U("1429962714451-bb934ecdc4ec"),
+  art_minelli: U("1514525253161-7a46d19cd819"),
+  art_the_motans: U("1524368535928-5b5e00ddc76b"),
+  art_carlas_dreams: U("1483393458019-411bc6bd104e"),
+  art_inna: U("1492684223066-81342ee5ff30"),
   // catering
   wed_menu_standard: U("1555244162-803834f70033"),
   wed_menu_premium: U("1414235077428-338989a2e8c0"),
@@ -74,6 +103,8 @@ const ITEM_PHOTOS: Record<string, string> = {
 };
 
 const CATEGORY_PHOTOS: Record<CategoryId, string[]> = {
+  package: [U("1523050854058-8df90110c9f1"), U("1627556592933-3c4b1c6a2c79")],
+  banquet: [U("1414235077428-338989a2e8c0"), U("1519671482749-fd09be7ccebf")],
   venues: [U("1519225421980-715cb0215aed"), U("1511285560929-80b456fea0bc")],
   attire: [U("1564981797816-1043664bf78d"), U("1627556704302-624286467c65")],
   tickets: [U("1627556704302-624286467c65"), U("1564981797816-1043664bf78d")],
@@ -119,6 +150,8 @@ export function itemImage(item: CatalogItem): string {
 }
 
 export const CATEGORY_GRADIENT: Record<CategoryId, string> = {
+  package: "linear-gradient(135deg, #f3ecdd, #e3cf9c)",
+  banquet: "linear-gradient(135deg, #f5ece4, #e6c9b0)",
   venues: "linear-gradient(135deg, #eef0e8, #cdd9bd)",
   attire: "linear-gradient(135deg, #efe7f2, #d9c2e0)",
   tickets: "linear-gradient(135deg, #f3ecdd, #e3cf9c)",

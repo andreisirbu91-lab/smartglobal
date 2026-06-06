@@ -1,14 +1,15 @@
 import type { Lang, Localized, Unit } from "./types";
 
-/** App currency is EUR. Approx. conversion to show the RON equivalent. */
+/** App currency is RON (the real Star Global catalog). Approx € equivalent shown as a hint. */
 export const RON_PER_EUR = 4.97;
 
+/** Primary price label in RON, e.g. "245 RON" / "24.500 RON". */
 export const money = (n: number): string =>
-  `€${n.toLocaleString("en-IE", { minimumFractionDigits: n % 1 === 0 ? 0 : 2, maximumFractionDigits: 2 })}`;
+  `${Math.round(n).toLocaleString("ro-RO")} RON`;
 
-/** RON equivalent label, e.g. "≈ 99.400 RON". */
-export const ron = (eur: number): string =>
-  `≈ ${Math.round(eur * RON_PER_EUR).toLocaleString("ro-RO")} RON`;
+/** Secondary € equivalent, e.g. "≈ €49". */
+export const ron = (lei: number): string =>
+  `≈ €${Math.round(lei / RON_PER_EUR).toLocaleString("en-IE")}`;
 
 export const tr = (l: Localized, lang: Lang): string => l[lang];
 

@@ -33,6 +33,7 @@ import { TierCards } from "@/components/TierCards";
 import { VariantCarousel } from "@/components/VariantCarousel";
 import { OnlineClassmates } from "@/components/OnlineClassmates";
 import { money, tr } from "@/lib/format";
+import { itemImage } from "@/lib/images";
 import { t } from "@/lib/i18n";
 import { Chat, type ChatMessage } from "@/components/Chat";
 import { CartPanel } from "@/components/CartPanel";
@@ -646,7 +647,19 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   );
   const surface = order.tiers?.options?.length ? (
     <div className="space-y-3">
-      <TierCards question={order.tiers.question} options={order.tiers.options} lang={lang} onPick={addTier} voting={voting} />
+      {order.tiers.question && (
+        <div className="space-y-2"><div className="rule-gold" /><h3 className="text-display text-[24px] leading-tight text-ink">{order.tiers.question}</h3></div>
+      )}
+      <VariantCarousel
+        lang={lang}
+        voting={voting}
+        items={order.tiers.options.map((o) => {
+          const first = itemById(o.itemIds[0]);
+          const names = o.itemIds.map((id) => itemById(id)).filter(Boolean).map((it) => tr(it!.name, lang));
+          return { id: o.label, src: first ? itemImage(first) : "", title: o.label, subtitle: names.slice(0, 3).join(" · "), price: money(o.total) };
+        })}
+        onSelect={(id) => { const o = order.tiers!.options.find((t) => t.label === id); if (o) addTier(o.itemIds); }}
+      />
       {skipCategory}
     </div>
   ) : order.choices?.options?.length ? (
