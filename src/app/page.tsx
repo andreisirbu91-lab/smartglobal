@@ -321,6 +321,28 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [votes, order.tiers, sessionId, collabActive]);
 
+  // Safety net: a tier/choice set already shown this session never renders twice.
+  // The agent stays in charge of WHAT to propose; this only blocks an accidental repeat.
+  const seenSigRef = useRef<Set<string>>(new Set());
+  const shownRef = useRef<string[]>([]);
+  useEffect(() => {
+    const ti = order.tiers, ch = order.choices;
+    let sig: string | null = null;
+    let label = "";
+    if (ti?.options?.length) { sig = "t:" + ti.options.map((o) => [...o.itemIds].sort().join(",")).sort().join("|"); label = ti.options.map((o) => o.label).join(" / "); }
+    else if (ch?.options?.length) { sig = "c:" + ch.options.map((o) => o.label).sort().join("|"); label = ch.options.map((o) => o.label).join(" / "); }
+    if (!sig) return;
+    if (seenSigRef.current.has(sig)) {
+      setOrder((o) => { const n = { ...o }; delete n.tiers; delete n.choices; return n; });
+      keepMoving({ ...orderRef.current, tiers: undefined, choices: undefined });
+    } else {
+      seenSigRef.current.add(sig);
+      if (label) shownRef.current.push(label);
+      nudgeRef.current = 0;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order.tiers, order.choices]);
+
   function stop() {
     if (timerRef.current) clearTimeout(timerRef.current);
     pendingRef.current = [];
@@ -376,7 +398,7 @@ export default function Home() {
     pendingRef.current = [];
     if (!labels.length) return;
     nudgeRef.current = 0;
-    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and PERSUASIVELY (2-3 sentences: acknowledge their pick, then PROPOSE the next thing with a planner's reasoning — the standout option, what it adds, and the price vs their budget). Then you MUST move the screen forward to a DIFFERENT not-yet-covered category, choosing the RIGHT tool: recommend_tiers for product categories (cap, album, bars), or ask_choice (NO prices) for the artist GENRE. NEVER bundle mutually-exclusive variants in one tier (no album_2020+album_2030, no toca_digital+toca_painted) — those are ALTERNATIVES. Never re-show a category in CATEGORIES ALREADY IN THE PACKAGE or the same set they just picked from. If a venue was chosen, go to the first service category. If every category is covered, ask for name+email to finalize. ALWAYS end by surfacing something new (recommend_tiers / discover_places / ask_choice). NEVER re-ask anything already set; do NOT re-add items already added.]`);
+    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and PERSUASIVELY (2-3 sentences: acknowledge their pick, then PROPOSE the next thing with a planner's reasoning — the standout option, what it adds, and the price vs their budget). Then you MUST move the screen forward to a DIFFERENT not-yet-covered category, choosing the RIGHT tool: recommend_tiers for product categories (cap, album, bars), or ask_choice (NO prices) for the artist GENRE. NEVER bundle mutually-exclusive variants in one tier (no album_2020+album_2030, no toca_digital+toca_painted) — those are ALTERNATIVES. Never re-show a category in CATEGORIES ALREADY IN THE PACKAGE or the same set they just picked from. ALREADY SHOWN this session (NEVER show any of these again): ${shownRef.current.slice(-12).join(" ; ") || "none yet"}. If a venue was chosen, go to the first service category. If every category is covered, ask for name+email to finalize. ALWAYS end by surfacing something NEW (a set not in the already-shown list). NEVER re-ask anything already set; do NOT re-add items already added.]`);
   }
 
   /** Never let the flow stall: if a turn ended with nothing on screen, push the agent to continue. */
@@ -386,7 +408,7 @@ export default function Home() {
     if (o.contact?.name && o.contact?.email) return;        // ready to finalize — nothing to surface
     if (nudgeRef.current >= 2) return;                      // never loop forever
     nudgeRef.current++;
-    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"}. The screen is EMPTY — you ended a turn without putting anything on screen, which is NOT allowed. In ONE short sentence, continue the plan, then IMMEDIATELY call a tool that surfaces something: recommend_tiers for the NEXT not-yet-covered category (check CATEGORIES ALREADY IN THE PACKAGE — never repeat one), or ask_choice, or — if every category is already covered — ask for the customer's name & email to finalize. Do NOT stop without a surface.]`);
+    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"}. The screen is EMPTY — you ended a turn without putting anything on screen, which is NOT allowed. In ONE short sentence, continue the plan, then IMMEDIATELY call a tool that surfaces something: recommend_tiers for the NEXT not-yet-covered category, or ask_choice, or — if every category is already covered — ask for the customer's name & email to finalize. ALREADY SHOWN (NEVER repeat any): ${shownRef.current.slice(-12).join(" ; ") || "none yet"}. Do NOT stop without a surface and do NOT repeat an already-shown set.]`);
   }
 
   function queueReaction(label: string) {
@@ -480,8 +502,25 @@ export default function Home() {
 
   /** Answer a choice card; capture a date only when it's a CONCRETE day (has a digit),
    *  so a vague season like "Toamna"/"Summer" goes to the agent to propose real dates. */
+  const GENRE_PREFIX: Record<string, string> = { "Pop": "art_pop_", "Hip-Hop": "art_hh_", "Rock & Indie": "art_rock_", "DJ": "art_dj_" };
+
   function answerChoice(label: string) {
     const cur = orderRef.current;
+    // Deterministic: picking an artist genre always shows that genre's artists (never an empty list).
+    const prefix = GENRE_PREFIX[label];
+    if (prefix && (cur.eventType === "grad_highschool" || cur.eventType === "grad_university")) {
+      const ids = CATALOG.filter((i) => i.id.startsWith(prefix)).map((i) => i.id);
+      if (ids.length) {
+        setMessages((m) => [
+          ...m,
+          { role: "user", content: label },
+          { role: "assistant", content: lang === "ro" ? `Iată artiștii ${label} disponibili — alege-l pe cel dorit (prețuri în € + TVA):` : `Here are the ${label} artists — pick your favourite (prices in € + VAT):` },
+        ]);
+        setOrder((o) => { const n = clearTiers(clearChoices({ ...o })); n.spotlight = ids; return n; });
+        setTab("chat");
+        return;
+      }
+    }
     const concreteDate = cur.choices?.input === "date" && /\d/.test(label);
     const base = concreteDate ? setContext(cur, { date: label }) : cur;
     send(label, base);
@@ -725,12 +764,17 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
           const first = resolved[0];
           const names = resolved.map((it) => tr(it.name, lang));
           const bullets = first?.includes ? first.includes[lang] : names;
+          // Show the per-graduate price (as in the PDF) + the class total so they correlate.
+          const perGrad = resolved.reduce((s, it) => s + (it.unit === "per_graduate" ? it.price : 0), 0);
+          const price = perGrad > 0
+            ? `${money(perGrad)}/${lang === "ro" ? "abs." : "grad"} · ${money(o.total)}`
+            : money(o.total);
           return {
             id: o.label,
             src: first ? itemImage(first) : "",
             title: o.label,
             subtitle: names.slice(0, 3).join(" · "),
-            price: money(o.total),
+            price,
             images: resolved.map((it) => itemImage(it)),
             bullets,
           };
@@ -751,12 +795,23 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
     />
   ) : order.spotlight && order.spotlight.length > 0 ? (
     <div className="space-y-3">
-      <SpotlightPanel
-        ids={order.spotlight}
+      <VariantCarousel
         lang={lang}
-        selectedIds={new Set(order.lines.map((l) => l.itemId))}
-        onToggle={handleToggle}
-        onDismiss={() => mut(clearSpotlight)}
+        voting={voting}
+        selectedId={order.lines.map((l) => l.itemId).find((id) => order.spotlight!.includes(id))}
+        items={order.spotlight.map((id) => {
+          const it = itemById(id);
+          return {
+            id,
+            src: it ? itemImage(it) : "",
+            title: it ? tr(it.name, lang) : id,
+            subtitle: it ? tr(it.description, lang) : "",
+            price: it ? money(it.price, it.currency) : undefined,
+            images: it ? [itemImage(it)] : [],
+            bullets: it?.includes ? it.includes[lang] : it ? [tr(it.description, lang)] : [],
+          };
+        })}
+        onSelect={handleToggle}
       />
       {skipCategory}
     </div>

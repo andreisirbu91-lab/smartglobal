@@ -106,17 +106,17 @@ const mk = (s: CatalogItem): CatalogItem => s;
 
 export const CATALOG: CatalogItem[] = [
   // ===== FESTIVITY PACKAGES (per graduate) — the core Star Global offer =====
-  mk({ id: "sga_base", image: "/catalog/sga/base.jpg", category: "package", eventTypes: [U, H], unit: "per_graduate", price: 125,
+  mk({ id: "sga_base", category: "package", eventTypes: [U, H], unit: "per_graduate", price: 125,
     name: { en: "Graduation — Base Pack", ro: "Festivitate — Base Pack" },
     description: { en: "Robe, cap, sash, badge, velvet diploma, gift box & photo session.", ro: "Robă, tocă, eșarfă, insignă, diplomă pe catifea, gift box & ședință foto." },
     long: { en: "The essentials for a beautiful graduation ceremony, per graduate (min. 25).", ro: "Esențialul pentru o festivitate frumoasă, per absolvent (min. 25)." },
     includes: { en: ["Robe rental + cap (kept)", "Personalized sash & badge", "Honorary velvet diploma", "Graduation gift box", "Event photography (1 photographer/class)", "Photo session indoor/outdoor"], ro: ["Închiriere robă + tocă (rămâne)", "Eșarfă & insignă personalizate", "Diplomă onorifică pe catifea", "Graduation gift box", "Fotografiere eveniment (1 fotograf/clasă)", "Ședință foto indoor/outdoor"] } }),
-  mk({ id: "sga_expert", image: "/catalog/sga/expert.jpg", category: "package", eventTypes: [U, H], unit: "per_graduate", price: 245, popular: true,
+  mk({ id: "sga_expert", category: "package", eventTypes: [U, H], unit: "per_graduate", price: 245, popular: true,
     name: { en: "Graduation — Expert Pack", ro: "Festivitate — Expert Pack" },
     description: { en: "Everything in Base + photobooth, 360, livestream, 4K film, medals & stage.", ro: "Tot din Base + photobooth, 360, livestream, film 4K, medalii & scenă." },
     long: { en: "A full-production ceremony, per graduate (min. 100).", ro: "O festivitate cu producție completă, per absolvent (min. 100)." },
     includes: { en: ["Everything in Base Pack", "Orange carpet, photobooth & 360 videobooth", "Livestream + 4K filming + after movie", "Medals & trophies for top students", "Pro sound, LED screens, daylight fireworks", "Host, presidium, event planner & crew"], ro: ["Tot din Base Pack", "Orange carpet, photobooth & 360 videobooth", "Livestream + filmare 4K + after movie", "Medalii & trofee pentru șefii de promoție", "Sonorizare pro, ecrane LED, daylight fireworks", "Prezentator, prezidiu, event planner & echipă"] } }),
-  mk({ id: "sga_vip", image: "/catalog/sga/vip.jpg", category: "package", eventTypes: [U, H], unit: "per_graduate", price: 320,
+  mk({ id: "sga_vip", category: "package", eventTypes: [U, H], unit: "per_graduate", price: 320,
     name: { en: "Graduation — VIP Pack", ro: "Festivitate — VIP Pack" },
     description: { en: "Everything in Expert + Graduation Village, prosecco van, bars, live DJ.", ro: "Tot din Expert + Graduation Village, prosecco van, baruri, DJ live." },
     long: { en: "The flagship festival-vibe ceremony, per graduate (min. 100).", ro: "Festivitatea premium cu vibe de festival, per absolvent (min. 100)." },

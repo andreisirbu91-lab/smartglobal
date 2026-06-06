@@ -78,7 +78,7 @@ export function VariantCarousel({
   return (
     <div className="space-y-3">
       <div
-        className="relative h-[260px] w-full select-none sm:h-[300px]"
+        className="relative h-[280px] w-full select-none sm:h-[320px]"
         style={{ perspective: "1200px" }}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => { setHover(false); setMouse({ x: 0.5 }); }}
