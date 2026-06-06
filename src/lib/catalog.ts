@@ -229,9 +229,9 @@ export const CATALOG: CatalogItem[] = [
   // ===== SHARED =====
   mk({ id: "welcome_cocktail", category: "catering", eventTypes: ALL, unit: "per_guest", price: 30,
     name: { en: "Welcome Cocktail", ro: "Cocktail de Bun-venit" }, description: { en: "Canapés and a welcome drink, per guest.", ro: "Canapé-uri și o băutură de bun-venit, per invitat." } }),
-  mk({ id: "candy_bar", category: "cakes", eventTypes: [U, H], unit: "flat", price: 1500,
+  mk({ id: "candy_bar", image: "/catalog/sga/bar1.jpg", category: "cakes", eventTypes: [U, H], unit: "flat", price: 1500,
     name: { en: "Candy Bar", ro: "Candy Bar" }, description: { en: "Sweet table with assorted treats.", ro: "Masă cu dulciuri asortate." } }),
-  mk({ id: "prosecco_bar", category: "bar", eventTypes: [U, H], unit: "flat", price: 1800,
+  mk({ id: "prosecco_bar", image: "/catalog/sga/bar2.jpg", category: "bar", eventTypes: [U, H], unit: "flat", price: 1800,
     name: { en: "Prosecco Bar", ro: "Prosecco Bar" }, description: { en: "Sparkling bar for the toast.", ro: "Bar cu spumant pentru toast." } }),
 ];
 

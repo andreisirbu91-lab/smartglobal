@@ -69,6 +69,49 @@ export function VariantCarousel({
   })();
   const focus = items[focusIdx];
 
+  // Few options (packages, genres) → big, info-rich cards in a row (no sparse orbit).
+  if (items.length <= 4) {
+    return (
+      <div className="space-y-3">
+        <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 3)}, minmax(0, 1fr))` }}>
+          {items.map((it) => {
+            const sel = it.id === selectedId;
+            const win = winner === it.id;
+            return (
+              <div key={it.id} className={`group flex flex-col overflow-hidden rounded-2xl border bg-card shadow-[0_1px_2px_rgba(38,35,32,.04),0_22px_50px_-32px_rgba(38,35,32,.34)] transition hover:-translate-y-1 ${win || sel ? "border-gold/60 ring-1 ring-gold/30" : "border-gold/20 hover:border-gold/55"}`}>
+                <div className="relative h-44 w-full cursor-pointer overflow-hidden" onClick={() => onSelect(it.id)}>
+                  {it.src ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={it.src} alt={it.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  ) : <div className="h-full w-full bg-ivory-deep" />}
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/35 to-transparent" />
+                  <button onClick={(e) => { e.stopPropagation(); setInfo(it); }} className="absolute right-2 top-2 rounded-full bg-white/92 px-2.5 py-1 text-[11px] font-medium text-ink shadow transition hover:bg-white">ⓘ {lang === "ro" ? "Info" : "Info"}</button>
+                  {win && voting && <span className="absolute left-2 top-2 rounded-full bg-gold px-2 py-0.5 text-[10px] font-semibold text-white">★ {voting.count(it.id)}</span>}
+                </div>
+                <div className="flex flex-1 flex-col gap-1.5 p-4">
+                  <div className="text-display text-[17px] leading-tight text-ink">{it.title}</div>
+                  {it.subtitle && <div className="line-clamp-2 text-[12.5px] leading-snug text-ink-soft">{it.subtitle}</div>}
+                  <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+                    {it.price ? <span className="text-display text-[15px] text-gold-deep">{it.price}</span> : <span />}
+                    <div className="flex items-center gap-2">
+                      {voting && (
+                        <button onClick={() => voting.onVote(it.id)} className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${voting.mine(it.id) ? "border-gold bg-gold/12 text-gold-deep" : "border-ink/15 text-ink-soft hover:border-gold"}`}>
+                          {voting.mine(it.id) ? `✓ ${voting.count(it.id)}` : (lang === "ro" ? "Votează" : "Vote")}
+                        </button>
+                      )}
+                      <button onClick={() => onSelect(it.id)} className="btn-champagne px-4 py-1.5 text-[12px] font-medium">{sel ? (lang === "ro" ? "Ales" : "Chosen") : (lang === "ro" ? "Alege" : "Choose")}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {info && <CarouselInfo item={info} lang={lang} onClose={() => setInfo(null)} onChoose={() => { onSelect(info.id); setInfo(null); }} chosen={selectedId === info.id} />}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div
@@ -85,7 +128,7 @@ export function VariantCarousel({
           {items.map((item, i) => {
             const a = (((base + i * (360 / n)) % 360 + 360) % 360) * (Math.PI / 180);
             const depth = Math.sin(a);            // -1 back .. 1 front
-            const x = Math.cos(a) * 300 + (mouse.x - 0.5) * 30;
+            const x = Math.cos(a) * 260 + (mouse.x - 0.5) * 30;
             const y = -depth * 26;
             const scale = 0.6 + ((depth + 1) / 2) * 0.6; // back .6 .. front 1.2
             const opacity = 0.35 + ((depth + 1) / 2) * 0.65;
