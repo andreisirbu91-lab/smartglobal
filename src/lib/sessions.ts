@@ -19,6 +19,8 @@ export type SessionData = {
   messages: SessionMsg[];
   lastWriter?: string;
   presence: Record<string, number>;
+  /** Group voting: optionId -> list of voter clientIds. */
+  votes?: Record<string, string[]>;
   updatedAt: number;
 };
 
@@ -56,6 +58,28 @@ export async function getSession(id: string, clientId?: string): Promise<Session
     d.presence[clientId] = Date.now();
     await write(id, d);
   }
+  return d;
+}
+
+/** Toggle a participant's vote for an option; returns the updated session. */
+export async function voteSession(id: string, clientId: string, optionId: string): Promise<SessionData | null> {
+  const d = await read(id);
+  if (!d) return null;
+  d.votes = d.votes || {};
+  const voters = new Set(d.votes[optionId] || []);
+  if (voters.has(clientId)) voters.delete(clientId);
+  else {
+    // one vote per person across the currently-voted set: remove their other votes,
+    // then add this one (a person has ONE current intention).
+    for (const k of Object.keys(d.votes)) d.votes[k] = (d.votes[k] || []).filter((c) => c !== clientId);
+    voters.add(clientId);
+  }
+  d.votes[optionId] = [...voters];
+  d.rev += 1;
+  d.updatedAt = Date.now();
+  d.presence = d.presence || {};
+  d.presence[clientId] = Date.now();
+  await write(id, d);
   return d;
 }
 

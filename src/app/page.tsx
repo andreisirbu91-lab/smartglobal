@@ -151,9 +151,20 @@ export default function Home() {
     setTimeout(() => { adoptingRef.current = false; }, 60);
   }
 
+  function leaveDeadSession() {
+    setSessionId(null);
+    setCollabActive(0);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("s");
+      window.history.replaceState({}, "", url.toString());
+    } catch { /* ignore */ }
+  }
+
   async function joinSession(id: string) {
     try {
       const res = await fetch(`/api/session/${id}?clientId=${clientIdRef.current}`);
+      if (res.status === 404) { leaveDeadSession(); return; } // session expired — recover to a normal app
       if (!res.ok) return;
       adopt(await res.json());
     } catch { /* ignore */ }
@@ -203,6 +214,7 @@ export default function Home() {
     const iv = setInterval(async () => {
       try {
         const res = await fetch(`/api/session/${sessionId}?clientId=${clientIdRef.current}`);
+        if (res.status === 404) { leaveDeadSession(); return; } // stop polling a dead session
         if (!res.ok) return;
         const d = await res.json();
         setCollabActive(d.active ?? 1);
