@@ -24,7 +24,7 @@ const S: Record<Key, Localized> = {
   subtotal: { en: "Subtotal", ro: "Subtotal" },
   total: { en: "Total", ro: "Total" },
   honorees: { en: "Honorees", ro: "Sărbătoriți" },
-  guests: { en: "Guests", ro: "Invitați" },
+  guests: { en: "Teachers & guests", ro: "Profesori & invitați" },
   promoPlaceholder: { en: "Promo code", ro: "Cod promoțional" },
   apply: { en: "Apply", ro: "Aplică" },
   confirm: { en: "Confirm booking", ro: "Confirmă rezervarea" },

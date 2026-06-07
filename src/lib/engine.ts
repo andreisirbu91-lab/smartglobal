@@ -375,6 +375,9 @@ export function validate(state: OrderState): ValidationIssue[] {
   if (state.lines.length === 0) {
     issues.push({ field: "lines", message: { en: "Add at least one item.", ro: "Adaugă cel puțin un articol." } });
   }
+  if (!state.lines.some((l) => l.itemId.startsWith("venue:"))) {
+    issues.push({ field: "venue", message: { en: "Choose a venue — the location is required.", ro: "Alege o locație — sala este obligatorie." } });
+  }
   if (!state.contact?.name) {
     issues.push({ field: "name", message: { en: "We need a name for the booking.", ro: "Avem nevoie de un nume pentru rezervare." } });
   }

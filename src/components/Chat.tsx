@@ -116,15 +116,15 @@ function Bubble({ role, content }: { role: "user" | "assistant"; content: string
   );
 }
 
-/** Minimal inline markdown: **bold**, *italic*, and line breaks. */
+/** Render **bold** safely and NEVER leak literal markdown symbols (**, ***, `, stray *). */
 function renderMarkdown(text: string): React.ReactNode {
-  return text.split("\n").map((line, li) => (
+  const clean = text.replace(/\*\*\*+/g, "").replace(/`+/g, ""); // drop *** runs and backticks
+  return clean.split("\n").map((line, li) => (
     <span key={li}>
       {li > 0 && <br />}
-      {line.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, i) => {
+      {line.split(/(\*\*[^*\n]+\*\*)/g).map((part, i) => {
         if (part.startsWith("**") && part.endsWith("**")) return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
-        if (part.startsWith("*") && part.endsWith("*")) return <em key={i}>{part.slice(1, -1)}</em>;
-        return <span key={i}>{part}</span>;
+        return <span key={i}>{part.replace(/\*/g, "")}</span>; // strip any leftover single asterisks
       })}
     </span>
   ));

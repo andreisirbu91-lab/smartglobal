@@ -37,7 +37,6 @@ import { itemImage } from "@/lib/images";
 import { t } from "@/lib/i18n";
 import { Chat, type ChatMessage } from "@/components/Chat";
 import { CartPanel } from "@/components/CartPanel";
-import { EventPicker } from "@/components/EventPicker";
 import { Stepper } from "@/components/Stepper";
 import { Button } from "@/components/ui";
 import { BasicsStep } from "@/components/steps/BasicsStep";
@@ -864,7 +863,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
         collabActive={collabActive}
       />
 
-      {!evt ? (
+      {messages.length === 0 ? (
         <Landing lang={lang} loading={loading} onStart={startFromText} onPick={pickEvent} />
       ) : (
         <>
@@ -896,7 +895,9 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
                     }
                   />
                 </div>
-                <RunningTotal total={quote.total} budget={order.context.budget} lang={lang} />
+                <button onClick={() => setTab("cart")} className="lg:pointer-events-none" title={lang === "ro" ? "Vezi coșul" : "View cart"}>
+                  <RunningTotal total={quote.total} budget={order.context.budget} lang={lang} />
+                </button>
               </div>
               <div className="min-h-0 flex-1">
                 <Chat
@@ -1262,11 +1263,9 @@ function Landing({
         ))}
       </div>
 
-      <div className="my-8 flex items-center gap-3 text-[11px] uppercase tracking-widest text-ink-soft/60">
-        <span className="h-px flex-1 bg-ink/10" /> {lang === "ro" ? "sau alege" : "or pick"} <span className="h-px flex-1 bg-ink/10" />
-      </div>
-
-      <EventPicker lang={lang} onPick={onPick} />
+      <p className="mt-6 text-center text-[12px] text-ink-soft/60">
+        {lang === "ro" ? "Absolvire de liceu sau de facultate — îți construiesc pachetul în conversație." : "Highschool or university graduation — I'll build your package right in the chat."}
+      </p>
     </div>
   );
 }

@@ -21,7 +21,7 @@ import {
   setSpotlight,
   setStep,
 } from "./engine";
-import { CATALOG, CATEGORIES, EVENT_TYPES, eventById, itemById } from "./catalog";
+import { CATALOG, CATEGORIES, EVENT_TYPES, eventById, itemById, isPack } from "./catalog";
 import { searchVenues } from "./places";
 import { proposePackage } from "./agents";
 import { lookupInfo } from "./knowledge";
@@ -490,18 +490,51 @@ export async function executeTool(
 
     case "propose_package": {
       const proposal = await proposePackage(state, args.preferences as string | undefined);
-      let next = state;
+      const prefs = String(args.preferences ?? "").toLowerCase();
+      const grads = Math.max(1, state.graduates);
       const budget = state.context.budget ?? 0;
+      let next = state;
       const added: string[] = [];
       let skipped = 0;
-      for (const id of proposal.itemIds) {
-        const candidate = addItem(next, id);
-        // Hard budget cap — build UP TO the budget, never over it.
-        if (budget > 0 && computeQuote(candidate).total > budget) { skipped++; continue; }
-        next = candidate;
-        const nm = itemById(id)?.name.en;
-        if (nm) added.push(nm);
+      const fits = (cand: OrderState) => budget <= 0 || computeQuote(cand).total <= budget;
+
+      // 1) Venue is MANDATORY — add the first partner venue if none chosen yet.
+      if (!next.lines.some((l) => l.itemId.startsWith("venue:"))) {
+        try {
+          const vs = await searchVenues("banquet hall", next.context.city ?? "Constanța");
+          if (vs[0]) { next = selectVenue(next, vs[0]); added.push(vs[0].name); }
+        } catch { /* ignore */ }
       }
+
+      // 2) Exactly ONE graduation pack — the highest level that fits the budget (Base is the floor).
+      if (!next.lines.some((l) => isPack(l.itemId))) {
+        const packId = ["sga_vip", "sga_expert", "sga_base"].find((id) => {
+          const total = (itemById(id)?.price ?? 0) * grads;
+          return budget <= 0 || total <= budget;
+        }) ?? "sga_base";
+        next = addItem(next, packId);
+        added.push(itemById(packId)!.name.en);
+      }
+      const hasVip = next.lines.some((l) => l.itemId === "sga_vip");
+      const barIds = new Set(["prosecco_bar", "candy_bar", "sga_sushi_bar"]); // VIP already includes the bars
+
+      // 3) Extras from the LLM proposal — never a pack, never a duplicate, never pack-covered, within budget.
+      for (const id of proposal.itemIds) {
+        if (isPack(id)) continue;
+        if (next.lines.some((l) => l.itemId === id)) continue;
+        if (hasVip && barIds.has(id)) continue;
+        const cand = addItem(next, id);
+        if (!fits(cand)) { skipped++; continue; }
+        next = cand;
+        const nm = itemById(id)?.name.en; if (nm) added.push(nm);
+      }
+
+      // 4) Honor an explicit "DJ" request even if the model missed it.
+      if (/\bdj\b/.test(prefs) && !next.lines.some((l) => l.itemId.startsWith("art_dj_"))) {
+        const cand = addItem(next, "art_dj_cristi_stanciu");
+        if (fits(cand)) { next = cand; added.push("Cristi Stanciu (DJ)"); }
+      }
+
       return { state: next, result: { ok: true, added, skipped, note: proposal.note, withinBudget: budget > 0 ? budget : "flexible", quote: computeQuote(next), stepIndex: next.stepIndex } };
     }
 

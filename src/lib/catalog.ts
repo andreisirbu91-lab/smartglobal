@@ -25,7 +25,7 @@ export const EVENT_TYPES: EventType[] = [
     name: { en: "University Graduation", ro: "Absolvire Facultate" },
     tagline: { en: "Licență & Master", ro: "Licență și Master" },
     icon: "🎓",
-    honoreeLabel: { en: "Graduates", ro: "Absolvenți" },
+    honoreeLabel: { en: "Graduates (total)", ro: "Absolvenți (total)" },
     steps: [
       { id: "location", kind: "basics", field: "location", title: { en: "Location", ro: "Locația" },
         question: { en: "Congrats! 🎓 Which city or area is the celebration in?", ro: "Felicitări! 🎓 În ce oraș sau zonă va fi petrecerea?" } },
@@ -49,7 +49,7 @@ export const EVENT_TYPES: EventType[] = [
     name: { en: "Highschool Banquet", ro: "Banchet Liceu" },
     tagline: { en: "Banchet & curs festiv", ro: "Banchet și curs festiv" },
     icon: "📚",
-    honoreeLabel: { en: "Students", ro: "Elevi" },
+    honoreeLabel: { en: "Graduates (total)", ro: "Absolvenți (total)" },
     steps: [
       { id: "location", kind: "basics", field: "location", title: { en: "Location", ro: "Locația" },
         question: { en: "The big banquet! 🎉 Which city or area is it in?", ro: "Marele banchet! 🎉 În ce oraș sau zonă va fi?" } },
@@ -234,6 +234,27 @@ export const CATALOG: CatalogItem[] = [
   mk({ id: "prosecco_bar", image: "/catalog/sga/bar2.jpg", category: "bar", eventTypes: [U, H], unit: "flat", price: 1800,
     name: { en: "Prosecco Bar", ro: "Prosecco Bar" }, description: { en: "Sparkling bar for the toast.", ro: "Bar cu spumant pentru toast." } }),
 ];
+
+// --- Pack contents ---------------------------------------------------------
+// What each graduation pack ALREADY includes, so the agent never re-offers/re-sells it.
+const PACK_COVERS: Record<string, { en: string[]; ro: string[] }> = {
+  sga_base: {
+    en: ["gown & cap (tocă)", "personalized sash & badge", "honorary diploma", "graduation gift box", "event photography", "photo session (indoor/outdoor)"],
+    ro: ["robă & tocă", "eșarfă & insignă personalizate", "diplomă onorifică", "graduation gift box", "fotografiere eveniment", "ședință foto (indoor/outdoor)"],
+  },
+  sga_expert: {
+    en: ["everything in Base", "orange carpet, photobooth & 360 videobooth", "livestream + 4K filming + after movie", "medals & trophies", "pro sound, LED screens, daylight fireworks", "host, presidium, event planner"],
+    ro: ["tot din Base", "orange carpet, photobooth & 360 videobooth", "livestream + filmare 4K + after movie", "medalii & trofee", "sonorizare pro, ecrane LED, artificii", "prezentator, prezidiu, event planner"],
+  },
+  sga_vip: {
+    en: ["everything in Expert", "Graduation Village", "prosecco van, lemonade & drinks bar", "smoke entrance + remember clip", "specialty coffee + live DJ mix", "volumetric letters, roses, premium décor"],
+    ro: ["tot din Expert", "Graduation Village", "prosecco van, lemonade & drinks bar", "intrare cu fumigene + clip remember", "specialty coffee + live DJ mix", "litere volumetrice, trandafiri, decor premium"],
+  },
+};
+
+/** Concepts already included in a chosen pack — never offer these as separate add-ons. */
+export const packCovers = (itemId: string, lang: "en" | "ro"): string[] => PACK_COVERS[itemId]?.[lang] ?? [];
+export const isPack = (itemId: string): boolean => itemId in PACK_COVERS;
 
 // --- Lookups ---------------------------------------------------------------
 
