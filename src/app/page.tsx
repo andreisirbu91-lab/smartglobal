@@ -15,6 +15,7 @@ import {
   clearTiers,
   emptyOrder,
   nextStep,
+  planPackage,
   prevStep,
   quote as computeQuote,
   selectVenue,
@@ -34,6 +35,7 @@ import { VariantCarousel } from "@/components/VariantCarousel";
 import { OnlineClassmates } from "@/components/OnlineClassmates";
 import { money, tr } from "@/lib/format";
 import { itemImage } from "@/lib/images";
+import { searchVenues } from "@/lib/places";
 import { t } from "@/lib/i18n";
 import { Chat, type ChatMessage } from "@/components/Chat";
 import { CartPanel } from "@/components/CartPanel";
@@ -100,6 +102,15 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [toasts, setToasts] = useState<{ id: number; text: string }[]>([]);
+  const toastIdRef = useRef(0);
+  const buildModeRef = useRef<{ active: boolean; prefs: string }>({ active: false, prefs: "" });
+  const buildBusyRef = useRef(false);
+  function showToast(text: string) {
+    const id = ++toastIdRef.current;
+    setToasts((t) => [...t, { id, text }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2600);
+  }
   const [tab, setTab] = useState<Tab>("chat");
   const [focusSignal, setFocusSignal] = useState(0);
   const [checkout, setCheckout] = useState<null | "ask" | "searching" | "deal">(null);
@@ -521,6 +532,13 @@ export default function Home() {
       }
     }
     const concreteDate = cur.choices?.input === "date" && /\d/.test(label);
+    // Build mode: once the customer picks the DATE, the agent builds everything itself.
+    if (concreteDate && buildModeRef.current.active) {
+      setMessages((m) => [...m, { role: "user", content: label }]);
+      setOrder((o) => clearChoices(setContext(o, { date: label })));
+      void theatricalBuild();
+      return;
+    }
     const base = concreteDate ? setContext(cur, { date: label }) : cur;
     send(label, base);
   }
@@ -551,18 +569,57 @@ export default function Home() {
       setLoading(false);
       setStatus(null);
     }
-    await maybeForceBuild(text, resultOrder ?? orderRef.current);
+    armBuildMode(text);
+    const ob = orderRef.current;
+    if (buildModeRef.current.active && ob.context.date && ob.graduates >= 2 && !ob.lines.some((l) => ["sga_base", "sga_expert", "sga_vip"].includes(l.itemId))) {
+      void theatricalBuild();
+      return;
+    }
     await keepMoving(orderRef.current);
   }
 
-  /** A "build it for me" request must ALWAYS produce a full package — force propose_package
-   *  once the basics are captured, even if the model showed tiers instead. */
-  const BUILD_RE = /(f[ăa]-?mi|fa-?mi|construi|construie|build it|do it for me|pachet complet|complete package|solu[țt]ie|end.?to.?end|surprinde|surprise me)/i;
-  async function maybeForceBuild(text: string, o: OrderState) {
-    if (!BUILD_RE.test(text)) return;
-    if (!o.eventType || o.graduates < 2) return;                 // need the basics first
-    if (o.lines.some((l) => ["sga_base", "sga_expert", "sga_vip"].includes(l.itemId))) return; // already built
-    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"}. The customer asked you to build the full package for them. Call ONLY the propose_package tool now, passing preferences="${text.replace(/"/g, "")}". Do NOT show the Base/Expert/VIP tiers and do NOT ask them to pick — propose_package builds the venue + pack + extras within budget. After it returns, review what you built in 2 short sentences and point out it's within their budget.]`);
+  /** Detect a "build it for me" request and ARM build mode. The agent then asks the date
+   *  and shows venues; once the customer picks a venue, the package auto-builds theatrically. */
+  const BUILD_RE = /(f[ăa]-?mi|fac[- ]?mi|construie?[șs]te|construi|build|surprinde|surprise me|solu[țt]ie|solution|pachet complet|complete package|full package|end.?to.?end)/i;
+  function armBuildMode(text: string) {
+    const hasBudgetOrComplete = /\b\d{4,6}\b|buget|budget|complet|complete|full|for me|pentru mine/i.test(text);
+    if (BUILD_RE.test(text) && hasBudgetOrComplete) buildModeRef.current = { active: true, prefs: text };
+  }
+
+  /** Build the package around the already-chosen venue, dropping items into the cart
+   *  one by one with a toast for each — the "wow" moment. */
+  const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  async function theatricalBuild() {
+    if (buildBusyRef.current) return;
+    buildBusyRef.current = true;
+    const prefs = buildModeRef.current.prefs;
+    buildModeRef.current.active = false;
+    setOrder((o) => clearTiers(clearChoices(clearSpotlight(clearDiscovery(o)))));
+    setTab("cart");
+    setMessages((m) => [...m, { role: "assistant", content: lang === "ro" ? "Perfect — construiesc acum totul pentru tine, în buget. Privește coșul." : "Perfect — I'll build everything for you now, within budget. Watch the cart." }]);
+    await pause(500);
+
+    // 1) Venue first (the agent chooses a partner venue — the customer only picked the date).
+    if (!orderRef.current.lines.some((l) => l.itemId.startsWith("venue:"))) {
+      try {
+        const vs = await searchVenues("banquet hall", orderRef.current.context.city ?? "Constanța");
+        if (vs[0]) { setOrder((o) => selectVenue(o, vs[0])); showToast((lang === "ro" ? "Locația: " : "Venue: ") + vs[0].name); await pause(750); }
+      } catch { /* ignore */ }
+    }
+
+    // 2) Pack → food/drink → photo → DJ, one by one, all within budget.
+    for (const id of planPackage(orderRef.current, prefs)) {
+      const it = itemById(id);
+      setOrder((o) => addItem(o, id));
+      if (it) showToast((lang === "ro" ? "Adăugat: " : "Added: ") + tr(it.name, lang));
+      await pause(750);
+    }
+
+    const total = computeQuote(orderRef.current).total;
+    setMessages((m) => [...m, { role: "assistant", content: lang === "ro"
+      ? `Gata — pachetul complet e în coș, în bugetul tău (total ${money(total)}). Adaugă numele și emailul ca să confirmi, sau spune-mi ce vrei să schimbăm.`
+      : `Done — the full package is in your cart, within budget (total ${money(total)}). Add your name & email to confirm, or tell me what to change.` }]);
+    buildBusyRef.current = false;
   }
 
   async function startFromText(text: string) {
@@ -588,7 +645,7 @@ export default function Home() {
       setLoading(false);
       setStatus(null);
     }
-    await maybeForceBuild(v, resultOrder ?? orderRef.current);
+    armBuildMode(v);
     await keepMoving(orderRef.current);
   }
 
@@ -888,6 +945,13 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-[1480px] flex-col px-3 pb-3 sm:px-6">
+      {toasts.length > 0 && (
+        <div className="pointer-events-none fixed bottom-5 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-2">
+          {toasts.map((tt) => (
+            <div key={tt.id} className="animate-rise rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-ivory shadow-[0_12px_30px_-10px_rgba(38,35,32,.6)]">✓ {tt.text}</div>
+          ))}
+        </div>
+      )}
       <Header
         lang={lang}
         eventName={evt ? tr(evt.name, lang) : null}

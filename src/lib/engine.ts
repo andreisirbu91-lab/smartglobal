@@ -4,6 +4,7 @@ import {
   PROMO_CODES,
   eventById,
   itemById,
+  isPack,
 } from "./catalog";
 import { RON_PER_EUR } from "./format";
 import type {
@@ -389,6 +390,44 @@ export function validate(state: OrderState): ValidationIssue[] {
 
 export function canConfirm(state: OrderState): boolean {
   return validate(state).length === 0;
+}
+
+/**
+ * Deterministic package plan (no LLM): the ordered catalog ids to ADD around an
+ * already-chosen venue — exactly one best-fit graduation pack, the requested DJ,
+ * then end-to-end fillers (food/drink, photo, afterparty) — all kept within budget.
+ * Used by the theatrical "build it for me" flow that drops items into the cart one by one.
+ */
+export function planPackage(state: OrderState, prefs = ""): string[] {
+  const grads = Math.max(1, state.graduates);
+  const budget = state.context.budget ?? 0;
+  const ids: string[] = [];
+  let work = state;
+  const has = (id: string) => work.lines.some((l) => l.itemId === id) || ids.includes(id);
+  const tryAdd = (id: string) => {
+    if (!id || has(id)) return;
+    const cand = addItem(work, id);
+    if (budget > 0 && quote(cand).total > budget) return;
+    work = cand;
+    ids.push(id);
+  };
+
+  // 1) Exactly one pack — the highest level that fits the budget (Base is the floor).
+  if (!work.lines.some((l) => isPack(l.itemId))) {
+    const packId = ["sga_vip", "sga_expert", "sga_base"].find((id) => budget <= 0 || (itemById(id)?.price ?? 0) * grads <= budget) ?? "sga_base";
+    work = addItem(work, packId);
+    ids.push(packId);
+  }
+  const hasVip = work.lines.some((l) => l.itemId === "sga_vip") || ids.includes("sga_vip");
+  const covered = new Set(hasVip ? ["prosecco_bar", "candy_bar", "sga_sushi_bar", "toca_digital", "toca_painted"] : []);
+
+  // 2) Explicit DJ request (priority over discretionary extras).
+  if (/\bdj\b/i.test(prefs) && !work.lines.some((l) => l.itemId.startsWith("art_dj_"))) tryAdd("art_dj_cristi_stanciu");
+
+  // 3) End-to-end fill within budget: food/drink → photo keepsake → afterparty.
+  ["welcome_cocktail", "album_2030", "sga_afterparty"].forEach((id) => { if (!covered.has(id)) tryAdd(id); });
+
+  return ids;
 }
 
 /** Stable, human-friendly booking reference. */
