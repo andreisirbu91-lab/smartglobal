@@ -67,7 +67,7 @@ export function CartPanel({
       <Hairline className="my-3" />
 
       {/* Lines */}
-      <div className="min-h-[34vh] flex-1 overflow-y-auto pr-1 scroll-thin">
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-thin">
         {quote.lines.length === 0 ? (
           <p className="py-8 text-center text-sm text-ink-soft">{t("empty", lang)}</p>
         ) : (

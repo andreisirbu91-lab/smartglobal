@@ -607,9 +607,11 @@ export default function Home() {
         const vs = await searchVenues("banquet hall", orderRef.current.context.city ?? "Constanța");
         if (vs[0]) {
           setOrder((o) => selectVenue(o, vs[0]));
-          setMessages((m) => [...m, { role: "assistant", content: (lang === "ro" ? "Locația: " : "Venue: ") + `**${vs[0].name}**` }]);
+          setMessages((m) => [...m, { role: "assistant", content: (lang === "ro" ? "Locația aleasă: " : "Chosen venue: ") + `**${vs[0].name}**` }]);
+          setReveal({ title: (lang === "ro" ? "Locație: " : "Venue: ") + vs[0].name, img: vs[0].photoUrl ?? featureImage("venue"), idx: 1, total: 1 });
           showToast((lang === "ro" ? "Locația: " : "Venue: ") + vs[0].name);
-          await pause(1400);
+          await pause(1900);
+          setReveal(null);
         }
       } catch { /* ignore */ }
     }
@@ -843,15 +845,24 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
       {lang === "ro" ? "Sari peste această categorie →" : "Skip this category →"}
     </button>
   );
-  const surface = order.tiers?.options?.length ? (
+  // Source-of-truth guard: never surface what's already in the cart or covered by the chosen pack.
+  const coveredIds = (() => {
+    const s = new Set<string>(order.lines.map((l) => l.itemId));
+    if (order.lines.some((l) => l.itemId === "sga_vip")) ["toca_digital", "toca_painted", "prosecco_bar", "candy_bar", "sga_sushi_bar"].forEach((id) => s.add(id));
+    return s;
+  })();
+  const tierOpts = (order.tiers?.options ?? []).filter((o) => o.itemIds.some((id) => !coveredIds.has(id)));
+  const spotIds = (order.spotlight ?? []).filter((id) => !coveredIds.has(id));
+
+  const surface = tierOpts.length ? (
     <div className="space-y-3">
-      {order.tiers.question && (
-        <div className="space-y-2"><div className="rule-gold" /><h3 className="text-display text-[24px] leading-tight text-ink">{order.tiers.question}</h3></div>
+      {order.tiers!.question && (
+        <div className="space-y-2"><div className="rule-gold" /><h3 className="text-display text-[24px] leading-tight text-ink">{order.tiers!.question}</h3></div>
       )}
       <VariantCarousel
         lang={lang}
         voting={voting}
-        items={order.tiers.options.map((o) => {
+        items={tierOpts.map((o) => {
           const resolved = o.itemIds.map((id) => itemById(id)).filter(Boolean) as NonNullable<ReturnType<typeof itemById>>[];
           const first = resolved[0];
           const names = resolved.map((it) => tr(it.name, lang));
@@ -885,13 +896,13 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
       onOther={openOther}
       voting={voting}
     />
-  ) : order.spotlight && order.spotlight.length > 0 ? (
+  ) : spotIds.length ? (
     <div className="space-y-3">
       <VariantCarousel
         lang={lang}
         voting={voting}
-        selectedId={order.lines.map((l) => l.itemId).find((id) => order.spotlight!.includes(id))}
-        items={order.spotlight.map((id) => {
+        selectedId={order.lines.map((l) => l.itemId).find((id) => spotIds.includes(id))}
+        items={spotIds.map((id) => {
           const it = itemById(id);
           return {
             id,
@@ -946,7 +957,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   ) : (messages.length <= 1 && !order.eventType && order.lines.length === 0) ? (
     <div className="animate-rise space-y-3">
       <div className="rule-gold" />
-      <h3 className="text-display text-[20px] leading-tight text-ink">{lang === "ro" ? "Începe cu un exemplu" : "Start with an example"}</h3>
+      <div className="kicker text-[10px] text-gold-deep">{lang === "ro" ? "Automat — îl construiesc eu" : "Automatic — I build it"}</div>
       <div className="grid gap-2.5 sm:grid-cols-2">
         {(lang === "ro"
           ? [
@@ -963,6 +974,13 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
           </button>
         ))}
       </div>
+      <div className="kicker mt-1 text-[10px] text-ink-soft/70">{lang === "ro" ? "Manual — aleg eu pas cu pas" : "Manual — I pick step by step"}</div>
+      <button
+        onClick={() => send(lang === "ro" ? "Vreau să aleg eu pas cu pas un banchet de liceu în Constanța, pentru 150 de absolvenți și 30 de invitați. Ghidează-mă pe categorii." : "I want to pick step by step a highschool graduation banquet in Constanța, for 150 graduates and 30 guests. Guide me category by category.")}
+        className="w-full rounded-2xl border border-ink/15 p-3.5 text-left text-[13.5px] leading-snug text-ink transition hover:-translate-y-0.5 hover:border-gold/55"
+      >
+        {lang === "ro" ? "Ghidează-mă pas cu pas — aleg eu locația, pachetul, extra-urile." : "Guide me step by step — I choose the venue, package and extras."}
+      </button>
       <p className="text-[12px] text-ink-soft/70">{lang === "ro" ? "…sau scrie cererea ta mai jos." : "…or type your own request below."}</p>
     </div>
   ) : null;
