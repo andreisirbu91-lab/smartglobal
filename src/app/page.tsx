@@ -861,11 +861,12 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   // Suppress a choice that re-asks something already captured (headcount / budget / date).
   const choiceRedundant = (() => {
     const ch = order.choices;
-    if (!ch?.options?.length) return false;
-    const labels = ch.options.map((o) => o.label.toLowerCase()).join(" ");
-    const money = /buget|budget|ron|lei|€/.test(labels);
-    if (order.context.budget && money) return true;                                  // budget already set
-    if (order.graduates > 1 && ch.input === "number" && !money) return true;          // headcount already set
+    const opts = ch?.options;
+    if (!ch || !opts || !opts.length) return false;
+    const labels = opts.map((o) => o.label.toLowerCase()).join(" ");
+    const isMoney = /buget|budget|ron|lei|€/.test(labels);
+    if (order.context.budget && isMoney) return true;                                 // budget already set
+    if (order.graduates > 1 && ch.input === "number" && !isMoney) return true;        // headcount already set
     if (order.context.date && ch.input === "date") return true;                       // date already set
     return false;
   })();
@@ -1088,7 +1089,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
             </section>
 
             {/* Cart */}
-            <section className={`card-soft ${show("cart")} ${paneH} flex-col p-4 lg:col-span-4`}>
+            <section className={`card-soft ${show("cart")} ${paneH} flex-col overflow-y-auto scroll-thin p-4 lg:col-span-4`}>
               <CartPanel
                 order={order}
                 quote={quote}
