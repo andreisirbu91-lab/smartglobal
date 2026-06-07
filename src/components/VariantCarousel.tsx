@@ -38,21 +38,27 @@ export function VariantCarousel({
   const winner = voting ? topVoted(items.map((it) => it.id), voting.count) : null;
   const [base, setBase] = useState(0);
   const [hover, setHover] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [mouse, setMouse] = useState({ x: 0.5 });
   const [info, setInfo] = useState<CarouselItem | null>(null);
   const [offset, setOffset] = useState(0);
   const raf = useRef<number | null>(null);
+  const dragRef = useRef<{ startX: number; startBase: number } | null>(null);
+  const didDrag = useRef(false);
 
   const LIMIT = 8;
+  const DRAG_SENSITIVITY = 0.28; // degrees per pixel
+  const DRAG_THRESHOLD = 5;      // px before we count it as a drag
+
   // Show at most LIMIT cards at once; "more variants" rotates the window.
   const windowItems = items.length <= LIMIT
     ? items
     : Array.from({ length: LIMIT }, (_, i) => items[(offset + i) % items.length]);
   const n = windowItems.length;
 
-  // Continuous slow rotation; paused while hovering.
+  // Continuous slow rotation; paused while hovering or dragging.
   useEffect(() => {
-    if (hover || n <= 1) return;
+    if (hover || dragging || n <= 1) return;
     let last = performance.now();
     const tick = (now: number) => {
       const dt = now - last;
@@ -62,7 +68,31 @@ export function VariantCarousel({
     };
     raf.current = requestAnimationFrame(tick);
     return () => { if (raf.current) cancelAnimationFrame(raf.current); };
-  }, [hover, n]);
+  }, [hover, dragging, n]);
+
+  function startDrag(clientX: number) {
+    dragRef.current = { startX: clientX, startBase: base };
+    didDrag.current = false;
+  }
+
+  function moveDrag(clientX: number) {
+    if (!dragRef.current) return;
+    const dx = clientX - dragRef.current.startX;
+    if (!didDrag.current && Math.abs(dx) > DRAG_THRESHOLD) {
+      didDrag.current = true;
+      setDragging(true);
+    }
+    if (didDrag.current) {
+      setBase(((dragRef.current.startBase - dx * DRAG_SENSITIVITY) % 360 + 360) % 360);
+    }
+  }
+
+  function endDrag() {
+    dragRef.current = null;
+    setDragging(false);
+    // Keep didDrag.current true briefly so the click handler can check it.
+    setTimeout(() => { didDrag.current = false; }, 0);
+  }
 
   const renderInfo = () => info && <CarouselInfo item={info} lang={lang} onClose={() => setInfo(null)} onChoose={() => { onSelect(info.id); setInfo(null); }} chosen={selectedId === info.id} />;
 
@@ -79,10 +109,19 @@ export function VariantCarousel({
     <div className="space-y-3">
       <div
         className="relative h-[280px] w-full select-none sm:h-[320px]"
-        style={{ perspective: "1200px" }}
+        style={{ perspective: "1200px", touchAction: "none" }}
         onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => { setHover(false); setMouse({ x: 0.5 }); }}
-        onMouseMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); setMouse({ x: (e.clientX - r.left) / r.width }); }}
+        onMouseLeave={() => { endDrag(); setHover(false); setMouse({ x: 0.5 }); }}
+        onMouseMove={(e) => {
+          moveDrag(e.clientX);
+          const r = e.currentTarget.getBoundingClientRect();
+          setMouse({ x: (e.clientX - r.left) / r.width });
+        }}
+        onMouseDown={(e) => { e.preventDefault(); startDrag(e.clientX); }}
+        onMouseUp={() => endDrag()}
+        onTouchStart={(e) => startDrag(e.touches[0].clientX)}
+        onTouchMove={(e) => moveDrag(e.touches[0].clientX)}
+        onTouchEnd={() => endDrag()}
       >
         <div className="absolute inset-0 flex items-center justify-center">
           {windowItems.map((item, i) => {
@@ -98,7 +137,7 @@ export function VariantCarousel({
             return (
               <button
                 key={item.id + i}
-                onClick={() => onSelect(item.id)}
+                onClick={() => { if (didDrag.current) return; onSelect(item.id); }}
                 className="absolute h-[150px] w-[114px] overflow-hidden rounded-2xl border bg-card text-left shadow-[0_24px_48px_-24px_rgba(38,35,32,.5)] transition-[border-color] sm:h-[172px] sm:w-[132px]"
                 style={{ transform: `translate(${x}px, ${y}px) scale(${scale})`, opacity, zIndex: z + 100, borderColor: sel ? "var(--color-gold)" : "rgba(38,35,32,.10)" }}
               >
@@ -142,7 +181,7 @@ export function VariantCarousel({
       )}
 
       <div className="flex items-center justify-center gap-3 text-[11px] text-ink-soft/70">
-        <span>{lang === "ro" ? "click pe un card ca să alegi" : "click a card to choose"}</span>
+        <span>{lang === "ro" ? "trage sau click pe un card ca să alegi" : "drag to spin · click a card to choose"}</span>
         {items.length > LIMIT && (
           <button onClick={() => setOffset((o) => (o + LIMIT) % items.length)} className="rounded-full border border-ink/15 px-3 py-1 font-medium text-ink-soft transition hover:border-gold hover:text-ink">
             {lang === "ro" ? `Vezi alte variante (${items.length})` : `More variants (${items.length})`}
