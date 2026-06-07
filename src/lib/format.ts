@@ -17,6 +17,6 @@ export const tr = (l: Localized, lang: Lang): string => l[lang];
 
 export const unitLabel: Record<Unit, Localized> = {
   per_graduate: { en: "per graduate", ro: "per absolvent" },
-  per_guest: { en: "per guest", ro: "per invitat" },
+  per_guest: { en: "per person", ro: "per persoană" },
   flat: { en: "flat", ro: "fix" },
 };

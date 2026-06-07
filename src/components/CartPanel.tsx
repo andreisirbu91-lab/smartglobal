@@ -131,7 +131,15 @@ export function CartPanel({
           <span className="text-display text-lg text-ink">{t("total", lang)}</span>
           <span className="text-display text-2xl text-gold-deep">{money(quote.total)}</span>
         </div>
-        {quote.total > 0 && <div className="text-right text-[11px] text-ink-soft">{ron(quote.total)}</div>}
+        {quote.total > 0 && (() => {
+          const people = Math.max(1, order.graduates + order.guests);
+          return (
+            <div className="flex items-center justify-between text-[11px] text-ink-soft">
+              <span>{money(Math.round(quote.total / people))}/{lang === "ro" ? "persoană" : "person"} · {people} {lang === "ro" ? "persoane" : "people"}</span>
+              <span>{ron(quote.total)}</span>
+            </div>
+          );
+        })()}
         {order.context.budget ? <BudgetBar total={quote.total} budget={order.context.budget} lang={lang} /> : null}
       </div>
 

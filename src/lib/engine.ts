@@ -279,7 +279,8 @@ function quantityFor(unit: string, state: OrderState, lineQty?: number): number 
     case "per_graduate":
       return Math.max(1, state.graduates);
     case "per_guest":
-      return Math.max(1, state.guests);
+      // Food/drink is for EVERYONE present — graduates + teachers/guests.
+      return Math.max(1, state.graduates + state.guests);
     default:
       return Math.max(1, lineQty ?? 1);
   }

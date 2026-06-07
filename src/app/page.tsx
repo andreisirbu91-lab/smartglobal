@@ -617,8 +617,13 @@ export default function Home() {
 
     const total = computeQuote(orderRef.current).total;
     setMessages((m) => [...m, { role: "assistant", content: lang === "ro"
-      ? `Gata — pachetul complet e în coș, în bugetul tău (total ${money(total)}). Adaugă numele și emailul ca să confirmi, sau spune-mi ce vrei să schimbăm.`
-      : `Done — the full package is in your cart, within budget (total ${money(total)}). Add your name & email to confirm, or tell me what to change.` }]);
+      ? `Gata — pachetul complet e în coș, în bugetul tău (total ${money(total)}). Dacă vrei să-l ridici un nivel, uite două adaosuri care fac diferența:`
+      : `Done — the full package is in your cart, within budget (total ${money(total)}). To take it up a notch, here are two add-ons that make the difference:` }]);
+    // Upsell moment — surface 1-3 premium add-ons not already in the cart.
+    await pause(400);
+    const inCart = new Set(orderRef.current.lines.map((l) => l.itemId));
+    const upsell = ["art_pop_minelli", "sga_sushi_bar", "canvas"].filter((id) => !inCart.has(id)).slice(0, 3);
+    if (upsell.length) { setTab("chat"); setOrder((o) => { const n = clearTiers(clearChoices({ ...o })); n.spotlight = upsell; return n; }); }
     buildBusyRef.current = false;
   }
 
