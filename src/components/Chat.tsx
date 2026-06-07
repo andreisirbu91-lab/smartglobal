@@ -51,9 +51,11 @@ export function Chat({
           <Bubble key={i} role={m.role} content={m.content} typing={m.role === "assistant" && i === messages.length - 1 && i > 0 && !m.content.includes("\n✓")} />
         ))}
         {loading && (
-          <div className="animate-rise flex items-center gap-2 text-sm text-ink-soft">
-            <Dots />
-            <span>{statusText ?? t("thinking", lang)}</span>
+          <div className="animate-rise flex justify-start">
+            <div className="card-soft flex items-center gap-2.5 rounded-2xl rounded-bl-md px-4 py-3 text-sm">
+              <Dots />
+              <span className="shimmer-text font-medium">{statusText ?? t("thinking", lang)}</span>
+            </div>
           </div>
         )}
         {surface && <div className="animate-rise pt-1">{surface}</div>}

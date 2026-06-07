@@ -30,6 +30,7 @@ import {
 import { CatalogCard } from "@/components/CatalogCard";
 import { ChoiceCards } from "@/components/ChoiceCards";
 import { TierCards } from "@/components/TierCards";
+import { PackageCompare } from "@/components/PackageCompare";
 import { VariantCarousel } from "@/components/VariantCarousel";
 import { OnlineClassmates } from "@/components/OnlineClassmates";
 import { money, tr } from "@/lib/format";
@@ -869,6 +870,8 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   })();
   const tierOpts = (order.tiers?.options ?? []).filter((o) => o.itemIds.some((id) => !coveredIds.has(id)));
   const spotIds = (order.spotlight ?? []).filter((id) => !coveredIds.has(id));
+  // The Base/Expert/VIP tiers get a premium side-by-side comparison instead of the carousel.
+  const isPackTiers = tierOpts.length >= 2 && tierOpts.every((o) => o.itemIds.length === 1 && ["sga_base", "sga_expert", "sga_vip"].includes(o.itemIds[0]));
   // Suppress a choice that re-asks something already captured (headcount / budget / date).
   const choiceRedundant = (() => {
     const ch = order.choices;
@@ -883,7 +886,15 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   })();
   const showChoices = !!order.choices?.options?.length && !choiceRedundant;
 
-  const surface = tierOpts.length ? (
+  const surface = tierOpts.length && isPackTiers ? (
+    <div className="space-y-3">
+      {order.tiers!.question && (
+        <div className="space-y-2"><div className="rule-gold" /><h3 className="text-display text-[24px] leading-tight text-ink">{order.tiers!.question}</h3></div>
+      )}
+      <PackageCompare lang={lang} grads={order.graduates} onSelect={(id) => addTier([id])} />
+      {skipCategory}
+    </div>
+  ) : tierOpts.length ? (
     <div className="space-y-3">
       {order.tiers!.question && (
         <div className="space-y-2"><div className="rule-gold" /><h3 className="text-display text-[24px] leading-tight text-ink">{order.tiers!.question}</h3></div>

@@ -106,6 +106,24 @@ body {
 }
 .animate-rise { animation: rise 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+/* Premium "composing" shimmer for the concierge's thinking state */
+@keyframes shimmer-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg, var(--color-ink-soft) 0%, var(--color-ink-soft) 35%, var(--color-gold) 50%, var(--color-ink-soft) 65%, var(--color-ink-soft) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer-sweep 1.8s linear infinite;
+}
+
+/* Subtle premium lift on interactive cards */
+.lift { transition: transform 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s ease; }
+.lift:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -24px rgba(138,108,48,0.5); }
+
 .scroll-thin::-webkit-scrollbar { width: 8px; }
 .scroll-thin::-webkit-scrollbar-thumb {
   background: rgba(138, 108, 48, 0.28);
