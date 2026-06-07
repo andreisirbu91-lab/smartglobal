@@ -322,21 +322,21 @@ export default function Home() {
 
   // Safety net: a tier/choice set already shown this session never renders twice.
   // The agent stays in charge of WHAT to propose; this only blocks an accidental repeat.
-  const seenSigRef = useRef<Set<string>>(new Set());
-  const shownRef = useRef<string[]>([]);
+  // Block only a CONSECUTIVE duplicate surface (the agent showing the exact same set
+  // twice in a row). Re-showing a set later — e.g. packs at finalize if none was
+  // picked — is legitimate and allowed.
+  const lastSigRef = useRef<string | null>(null);
   useEffect(() => {
     const ti = order.tiers, ch = order.choices;
     let sig: string | null = null;
-    let label = "";
-    if (ti?.options?.length) { sig = "t:" + ti.options.map((o) => [...o.itemIds].sort().join(",")).sort().join("|"); label = ti.options.map((o) => o.label).join(" / "); }
-    else if (ch?.options?.length) { sig = "c:" + ch.options.map((o) => o.label).sort().join("|"); label = ch.options.map((o) => o.label).join(" / "); }
+    if (ti?.options?.length) sig = "t:" + ti.options.map((o) => [...o.itemIds].sort().join(",")).sort().join("|");
+    else if (ch?.options?.length) sig = "c:" + ch.options.map((o) => o.label).sort().join("|");
     if (!sig) return;
-    if (seenSigRef.current.has(sig)) {
+    if (sig === lastSigRef.current) {
       setOrder((o) => { const n = { ...o }; delete n.tiers; delete n.choices; return n; });
       keepMoving({ ...orderRef.current, tiers: undefined, choices: undefined });
     } else {
-      seenSigRef.current.add(sig);
-      if (label) shownRef.current.push(label);
+      lastSigRef.current = sig;
       nudgeRef.current = 0;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -397,7 +397,7 @@ export default function Home() {
     pendingRef.current = [];
     if (!labels.length) return;
     nudgeRef.current = 0;
-    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and PERSUASIVELY (2-3 sentences: acknowledge their pick, then PROPOSE the next thing with a planner's reasoning — the standout option, what it adds, and the price vs their budget). Then you MUST move the screen forward to a DIFFERENT not-yet-covered category, choosing the RIGHT tool: recommend_tiers for product categories (cap, album, bars), or ask_choice (NO prices) for the artist GENRE. NEVER bundle mutually-exclusive variants in one tier (no album_2020+album_2030, no toca_digital+toca_painted) — those are ALTERNATIVES. Never re-show a category in CATEGORIES ALREADY IN THE PACKAGE or the same set they just picked from. ALREADY SHOWN this session (NEVER show any of these again): ${shownRef.current.slice(-12).join(" ; ") || "none yet"}. If a venue was chosen, go to the first service category. If every category is covered, ask for name+email to finalize. ALWAYS end by surfacing something NEW (a set not in the already-shown list). NEVER re-ask anything already set; do NOT re-add items already added.]`);
+    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"} and do NOT call set_language. On-screen actions by the customer: ${labels.join("; ")}. React warmly and PERSUASIVELY (2-3 sentences: acknowledge their pick, then PROPOSE the next thing with a planner's reasoning — the standout option, what it adds, and the price vs their budget). Then you MUST move the screen forward to a DIFFERENT not-yet-covered category, choosing the RIGHT tool: recommend_tiers for product categories (cap, album, bars), or ask_choice (NO prices) for the artist GENRE. NEVER bundle mutually-exclusive variants in one tier (no album_2020+album_2030, no toca_digital+toca_painted) — those are ALTERNATIVES. Do NOT re-offer anything in ITEMS ALREADY IN THE CART or ALREADY COVERED BY THE CHOSEN PACK. If a venue was chosen, go to the first service category. If a graduation PACK isn't in the cart yet, show the Base/Expert/VIP tiers. If everything's covered, ask for name+email to finalize. ALWAYS end by surfacing something the customer still needs. NEVER re-ask anything already set; do NOT re-add items already added.]`);
   }
 
   /** Never let the flow stall: if a turn ended with nothing on screen, push the agent to continue. */
@@ -407,7 +407,7 @@ export default function Home() {
     if (o.contact?.name && o.contact?.email) return;        // ready to finalize — nothing to surface
     if (nudgeRef.current >= 2) return;                      // never loop forever
     nudgeRef.current++;
-    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"}. The screen is EMPTY — you ended a turn without putting anything on screen, which is NOT allowed. In ONE short sentence, continue the plan, then IMMEDIATELY call a tool that surfaces something: recommend_tiers for the NEXT not-yet-covered category, or ask_choice, or — if every category is already covered — ask for the customer's name & email to finalize. ALREADY SHOWN (NEVER repeat any): ${shownRef.current.slice(-12).join(" ; ") || "none yet"}. Do NOT stop without a surface and do NOT repeat an already-shown set.]`);
+    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"}. The screen is EMPTY — you ended a turn without putting anything on screen, which is NOT allowed. In ONE short sentence, continue the plan, then IMMEDIATELY call a tool that surfaces something: recommend_tiers for the NEXT not-yet-covered category (if no graduation PACK is in the cart yet, show Base/Expert/VIP), or ask_choice, or — if everything's covered and a venue + pack are in the cart — ask for the customer's name & email to finalize. Do NOT re-offer items already in the cart or covered by the pack. Do NOT stop without a surface.]`);
   }
 
   function queueReaction(label: string) {
