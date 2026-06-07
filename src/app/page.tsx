@@ -109,7 +109,7 @@ export default function Home() {
   function showToast(text: string) {
     const id = ++toastIdRef.current;
     setToasts((t) => [...t, { id, text }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2600);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3800);
   }
   const [tab, setTab] = useState<Tab>("chat");
   const [focusSignal, setFocusSignal] = useState(0);
@@ -599,20 +599,36 @@ export default function Home() {
     setMessages((m) => [...m, { role: "assistant", content: lang === "ro" ? "Perfect — construiesc acum totul pentru tine, în buget. Privește coșul." : "Perfect — I'll build everything for you now, within budget. Watch the cart." }]);
     await pause(500);
 
-    // 1) Venue first (the agent chooses a partner venue — the customer only picked the date).
+    // 1) LOCATION FIRST — the agent chooses a partner venue (customer only picked the date).
     if (!orderRef.current.lines.some((l) => l.itemId.startsWith("venue:"))) {
       try {
         const vs = await searchVenues("banquet hall", orderRef.current.context.city ?? "Constanța");
-        if (vs[0]) { setOrder((o) => selectVenue(o, vs[0])); showToast((lang === "ro" ? "Locația: " : "Venue: ") + vs[0].name); await pause(750); }
+        if (vs[0]) {
+          setOrder((o) => selectVenue(o, vs[0]));
+          setMessages((m) => [...m, { role: "assistant", content: (lang === "ro" ? "Locația: " : "Venue: ") + `**${vs[0].name}**` }]);
+          showToast((lang === "ro" ? "Locația: " : "Venue: ") + vs[0].name);
+          await pause(1400);
+        }
       } catch { /* ignore */ }
     }
 
-    // 2) Pack → food/drink → photo → DJ, one by one, all within budget.
+    // 2) Pack → its contents revealed line by line → food/drink → photo → DJ, slowly, all in budget.
     for (const id of planPackage(orderRef.current, prefs)) {
       const it = itemById(id);
       setOrder((o) => addItem(o, id));
       if (it) showToast((lang === "ro" ? "Adăugat: " : "Added: ") + tr(it.name, lang));
-      await pause(750);
+      await pause(900);
+      // When it's a graduation pack, reveal everything inside it, one line at a time.
+      if (["sga_base", "sga_expert", "sga_vip"].includes(id) && it?.includes) {
+        const inc = it.includes[lang];
+        setMessages((m) => [...m, { role: "assistant", content: `**${tr(it.name, lang)}** ${lang === "ro" ? "include" : "includes"}:` }]);
+        for (const line of inc) {
+          await pause(900);
+          setMessages((m) => { const last = m[m.length - 1]; return [...m.slice(0, -1), { ...last, content: last.content + "\n✓ " + line }]; });
+          showToast("✓ " + line);
+        }
+        await pause(700);
+      }
     }
 
     const total = computeQuote(orderRef.current).total;

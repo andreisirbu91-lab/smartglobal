@@ -48,7 +48,7 @@ export function Chat({
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 scroll-thin">
         {messages.map((m, i) => (
-          <Bubble key={i} role={m.role} content={m.content} typing={m.role === "assistant" && i === messages.length - 1 && i > 0} />
+          <Bubble key={i} role={m.role} content={m.content} typing={m.role === "assistant" && i === messages.length - 1 && i > 0 && !m.content.includes("\n✓")} />
         ))}
         {loading && (
           <div className="animate-rise flex items-center gap-2 text-sm text-ink-soft">
