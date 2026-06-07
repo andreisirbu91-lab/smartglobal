@@ -22,6 +22,7 @@ export function CartPanel({
   onSetContact,
   onConfirm,
   onShare,
+  onChooseVenue,
 }: {
   order: OrderState;
   quote: Quote;
@@ -35,6 +36,7 @@ export function CartPanel({
   onSetContact: (c: { name?: string; email?: string; phone?: string }) => void;
   onConfirm: () => void;
   onShare: () => void;
+  onChooseVenue?: () => void;
 }) {
   const [promo, setPromo] = useState("");
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -98,7 +100,7 @@ export function CartPanel({
                     </div>
                     {(l.category === "artists" || l.category === "venues") && (
                       <div className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-gold/10 px-1.5 py-0.5 text-[10px] text-gold-deep">
-                        ◷ {lang === "ro" ? "se confirmă cu echipa" : "confirmed with our team"}
+                        ◷ {lang === "ro" ? "disponibilitate confirmată telefonic" : "availability confirmed by phone"}
                       </div>
                     )}
                   </div>
@@ -201,7 +203,18 @@ export function CartPanel({
             className="rounded-xl border border-ink/10 bg-white px-3 py-2 text-sm outline-none focus:border-gold"
           />
         </div>
+        <input
+          value={order.contact?.phone ?? ""}
+          onChange={(e) => onSetContact({ phone: e.target.value })}
+          placeholder={lang === "ro" ? "Telefon (te sunăm să confirmăm disponibilitatea)" : "Phone (we'll call to confirm availability)"}
+          className="w-full rounded-xl border border-ink/10 bg-white px-3 py-2 text-sm outline-none focus:border-gold"
+        />
         {blocker && <p className="text-center text-[11px] text-wine">{tr(blocker.message, lang)}</p>}
+        {blocker?.field === "venue" && onChooseVenue && (
+          <Button variant="ghost" className="w-full" onClick={onChooseVenue}>
+            {lang === "ro" ? "Alege o locație →" : "Choose a venue →"}
+          </Button>
+        )}
         <Button variant="gold" className="w-full" disabled={!ready || confirming} onClick={onConfirm}>
           {confirming ? t("confirming", lang) : `${t("confirm", lang)} · ${money(quote.total)}`}
         </Button>
@@ -213,8 +226,8 @@ export function CartPanel({
         {quote.lines.length > 0 && (
           <p className="text-center text-[11px] leading-snug text-ink-soft/80">
             {lang === "ro"
-              ? "Notă: unele produse (artiști, locații, date specifice) se confirmă în scurt timp, după o verificare rapidă cu echipa."
-              : "Note: some items (artists, venues, specific dates) are confirmed shortly after a quick check with our team."}
+              ? "Rezervarea se înregistrează pe loc. Pentru locație și artiști te sunăm în 24h să confirmăm disponibilitatea pentru data aleasă — dacă ceva e ocupat, îți propunem o alternativă, fără costuri."
+              : "Your booking is registered instantly. For the venue & artists we'll call within 24h to confirm availability for your date — if anything is taken, we'll propose an alternative, at no cost."}
           </p>
         )}
       </div>

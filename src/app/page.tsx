@@ -1115,6 +1115,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
                 onSetContact={(c: Contact) => mut((o) => setContact(o, c))}
                 onConfirm={confirm}
                 onShare={shareDraft}
+                onChooseVenue={() => { setTab("chat"); send(lang === "ro" ? "Arată-mi locațiile disponibile în Constanța." : "Show me the available venues in Constanța."); }}
               />
             </section>
           </div>
