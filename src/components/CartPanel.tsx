@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CategoryId, Lang, OrderState, Quote } from "@/lib/types";
-import { canConfirm, isValidPromo } from "@/lib/engine";
+import { canConfirm, isValidPromo, validate } from "@/lib/engine";
 import { itemById } from "@/lib/catalog";
 import { CATEGORY_GRADIENT, itemImage } from "@/lib/images";
 import { money, ron, tr } from "@/lib/format";
@@ -39,6 +39,7 @@ export function CartPanel({
   const [promo, setPromo] = useState("");
   const [detailId, setDetailId] = useState<string | null>(null);
   const ready = canConfirm(order);
+  const blocker = ready ? null : validate(order)[0];
 
   return (
     <div className="flex flex-col">
@@ -200,7 +201,7 @@ export function CartPanel({
             className="rounded-xl border border-ink/10 bg-white px-3 py-2 text-sm outline-none focus:border-gold"
           />
         </div>
-        {!ready && <p className="text-center text-[11px] text-ink-soft">{t("needContact", lang)}</p>}
+        {blocker && <p className="text-center text-[11px] text-wine">{tr(blocker.message, lang)}</p>}
         <Button variant="gold" className="w-full" disabled={!ready || confirming} onClick={onConfirm}>
           {confirming ? t("confirming", lang) : `${t("confirm", lang)} · ${money(quote.total)}`}
         </Button>
