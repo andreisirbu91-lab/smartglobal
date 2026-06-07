@@ -577,7 +577,7 @@ export default function Home() {
     armBuildMode(text);
     const ob = orderRef.current;
     const hasPack = ob.lines.some((l) => ["sga_base", "sga_expert", "sga_vip"].includes(l.itemId));
-    if (buildModeRef.current.active && ob.graduates >= 2 && !hasPack) {
+    if (buildModeRef.current.active && ob.eventType && ob.graduates >= 2 && !hasPack) {
       if (ob.context.date) { void theatricalBuild(); return; }
       // Build-for-me but no date yet → ALWAYS show the date picker (don't rely on the model to ask it).
       forceDateChoice();
