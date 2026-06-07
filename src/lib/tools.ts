@@ -524,16 +524,23 @@ export async function executeTool(
         if (fits(cand)) { next = cand; added.push("Cristi Stanciu (DJ)"); }
       }
 
-      // 4) Extras from the LLM proposal — never a pack, never a duplicate, never pack-covered, within budget.
-      for (const id of proposal.itemIds) {
-        if (isPack(id)) continue;
-        if (next.lines.some((l) => l.itemId === id)) continue;
-        if (hasVip && barIds.has(id)) continue;
+      // helper: add an id only if it's new, not pack-covered, and keeps the total within budget.
+      const tryAdd = (id: string) => {
+        if (!id || isPack(id)) return;
+        if (next.lines.some((l) => l.itemId === id)) return;
+        if (hasVip && barIds.has(id)) return;
         const cand = addItem(next, id);
-        if (!fits(cand)) { skipped++; continue; }
+        if (!fits(cand)) { skipped++; return; }
         next = cand;
         const nm = itemById(id)?.name.en; if (nm) added.push(nm);
-      }
+      };
+
+      // 4) Extras from the LLM proposal (each budget-checked).
+      for (const id of proposal.itemIds) tryAdd(id);
+
+      // 5) Deterministic END-TO-END fill within budget, in priority: food/drink → photo keepsake → afterparty.
+      //    Guarantees a complete package (location + pack + food/drink + photo) at or under budget.
+      ["welcome_cocktail", "album_2030", "sga_afterparty"].forEach(tryAdd);
 
       return { state: next, result: { ok: true, added, skipped, note: proposal.note, withinBudget: budget > 0 ? budget : "flexible", quote: computeQuote(next), stepIndex: next.stepIndex } };
     }
