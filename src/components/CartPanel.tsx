@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CategoryId, Lang, OrderState, Quote } from "@/lib/types";
-import { canConfirm, isValidPromo, validate } from "@/lib/engine";
+import { canConfirm, validate } from "@/lib/engine";
 import { itemById } from "@/lib/catalog";
 import { CATEGORY_GRADIENT, itemImage } from "@/lib/images";
 import { money, ron, tr } from "@/lib/format";
@@ -17,7 +17,6 @@ export function CartPanel({
   honoreeLabel,
   onSetGraduates,
   onSetGuests,
-  onApplyPromo,
   onRemove,
   onSetContact,
   onConfirm,
@@ -31,14 +30,12 @@ export function CartPanel({
   honoreeLabel: string;
   onSetGraduates: (n: number) => void;
   onSetGuests: (n: number) => void;
-  onApplyPromo: (code: string) => void;
   onRemove: (id: string) => void;
   onSetContact: (c: { name?: string; email?: string; phone?: string }) => void;
   onConfirm: () => void;
   onShare: () => void;
   onChooseVenue?: () => void;
 }) {
-  const [promo, setPromo] = useState("");
   const [detailId, setDetailId] = useState<string | null>(null);
   const ready = canConfirm(order);
   const blocker = ready ? null : validate(order)[0];
@@ -125,22 +122,6 @@ export function CartPanel({
       </div>
 
       <Hairline className="my-3" />
-
-      {/* Promo */}
-      <div className="no-print flex gap-2">
-        <input
-          value={promo}
-          onChange={(e) => setPromo(e.target.value)}
-          placeholder={t("promoPlaceholder", lang)}
-          className="min-w-0 flex-1 rounded-full border border-ink/10 bg-white px-4 py-2 text-sm outline-none focus:border-gold"
-        />
-        <Button variant="ghost" onClick={() => onApplyPromo(promo)}>
-          {t("apply", lang)}
-        </Button>
-      </div>
-      {promo && !isValidPromo(promo) && !order.promoCode && (
-        <p className="mt-1 text-[11px] text-wine">{t("promoInvalid", lang)}</p>
-      )}
 
       {/* Totals */}
       <div className="mt-3 space-y-1.5 text-sm">

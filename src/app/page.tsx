@@ -8,7 +8,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   addItem,
   addVenue,
-  applyPromo,
   clearChoices,
   clearDiscovery,
   clearSpotlight,
@@ -1110,7 +1109,6 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
                 honoreeLabel={honoreeLabel}
                 onSetGraduates={(n) => mut((o) => setGraduates(o, n))}
                 onSetGuests={(n) => mut((o) => setGuests(o, n))}
-                onApplyPromo={(code) => mut((o) => applyPromo(o, code))}
                 onRemove={(id) => mut((o) => toggleItem(o, id))}
                 onSetContact={(c: Contact) => mut((o) => setContact(o, c))}
                 onConfirm={confirm}
