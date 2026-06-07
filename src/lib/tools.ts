@@ -516,7 +516,8 @@ export async function executeTool(
         added.push(itemById(packId)!.name.en);
       }
       const hasVip = next.lines.some((l) => l.itemId === "sga_vip");
-      const barIds = new Set(["prosecco_bar", "candy_bar", "sga_sushi_bar"]); // VIP already includes the bars
+      // VIP already includes the bars AND a personalized cap (tocă) — don't add those again.
+      const barIds = new Set(["prosecco_bar", "candy_bar", "sga_sushi_bar", "toca_digital", "toca_painted"]);
 
       // 3) Honor EXPLICIT requests FIRST (they take budget priority over discretionary extras).
       if (/\bdj\b/.test(prefs) && !next.lines.some((l) => l.itemId.startsWith("art_dj_"))) {

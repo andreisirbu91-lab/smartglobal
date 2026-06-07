@@ -151,7 +151,7 @@ export const CATALOG: CatalogItem[] = [
     name: { en: "Plush Album Cover", ro: "Copertă de Pluș" }, description: { en: "Soft plush cover, various colors.", ro: "Copertă de pluș, diverse culori." } }),
   mk({ id: "album_leather", category: "photography", eventTypes: [U, H], unit: "per_graduate", price: 150,
     name: { en: "Leather Album Cover", ro: "Copertă de Piele" }, description: { en: "Premium leather cover, various colors.", ro: "Copertă de piele premium, diverse culori." } }),
-  mk({ id: "canvas", category: "photozone", eventTypes: [U, H], unit: "per_graduate", price: 70,
+  mk({ id: "canvas", image: "/catalog/sga/photo.jpg", category: "photozone", eventTypes: [U, H], unit: "per_graduate", price: 70,
     name: { en: "Canvas Print", ro: "Tablou Canvas" }, description: { en: "A canvas keepsake from the shoot.", ro: "Un tablou canvas din ședința foto." } }),
 
   // ===== ARTISTS — grouped by genre (id prefix art_pop_/art_hh_/art_rock_/art_dj_); prices in EUR + VAT =====
@@ -247,8 +247,8 @@ const PACK_COVERS: Record<string, { en: string[]; ro: string[] }> = {
     ro: ["tot din Base", "orange carpet, photobooth & 360 videobooth", "livestream + filmare 4K + after movie", "medalii & trofee", "sonorizare pro, ecrane LED, artificii", "prezentator, prezidiu, event planner"],
   },
   sga_vip: {
-    en: ["everything in Expert", "Graduation Village", "prosecco van, lemonade & drinks bar", "smoke entrance + remember clip", "specialty coffee + live DJ mix", "volumetric letters, roses, premium décor"],
-    ro: ["tot din Expert", "Graduation Village", "prosecco van, lemonade & drinks bar", "intrare cu fumigene + clip remember", "specialty coffee + live DJ mix", "litere volumetrice, trandafiri, decor premium"],
+    en: ["everything in Expert", "Graduation Village", "personalized cap (tocă) with message", "prosecco van, lemonade & drinks bar", "smoke entrance + remember clip", "specialty coffee + live DJ mix", "volumetric letters, roses, premium décor"],
+    ro: ["tot din Expert", "Graduation Village", "tocă personalizată cu mesaj", "prosecco van, lemonade & drinks bar", "intrare cu fumigene + clip remember", "specialty coffee + live DJ mix", "litere volumetrice, trandafiri, decor premium"],
   },
 };
 
