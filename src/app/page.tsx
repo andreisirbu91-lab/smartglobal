@@ -862,6 +862,28 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
         voting={voting}
       />
     </div>
+  ) : (messages.length <= 1 && !order.eventType && order.lines.length === 0) ? (
+    <div className="animate-rise space-y-3">
+      <div className="rule-gold" />
+      <h3 className="text-display text-[20px] leading-tight text-ink">{lang === "ro" ? "Începe cu un exemplu" : "Start with an example"}</h3>
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        {(lang === "ro"
+          ? [
+              "Avem nevoie de o soluție pentru o absolvire de liceu în Constanța, 200 de absolvenți și 40 de invitați, buget 50.000 lei. Fă-mi tu pachetul complet.",
+              "Fă-mi un banchet de absolvire complet în Constanța pentru 150 de absolvenți, buget 80.000 lei, cu DJ.",
+            ]
+          : [
+              "We need a solution for a highschool graduation in Constanța, 200 graduates and 40 guests, budget 50,000 RON. Build the full package for me.",
+              "Build a complete graduation banquet in Constanța for 150 graduates, budget 80,000 RON, with a DJ.",
+            ]
+        ).map((p) => (
+          <button key={p} onClick={() => send(p)} className="card-soft rounded-2xl p-4 text-left text-[13.5px] leading-snug text-ink transition hover:-translate-y-0.5 hover:border-gold/55">
+            {p}
+          </button>
+        ))}
+      </div>
+      <p className="text-[12px] text-ink-soft/70">{lang === "ro" ? "…sau scrie cererea ta mai jos." : "…or type your own request below."}</p>
+    </div>
   ) : null;
 
   return (
