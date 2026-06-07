@@ -551,7 +551,18 @@ export default function Home() {
       setLoading(false);
       setStatus(null);
     }
-    await keepMoving(resultOrder ?? orderRef.current);
+    await maybeForceBuild(text, resultOrder ?? orderRef.current);
+    await keepMoving(orderRef.current);
+  }
+
+  /** A "build it for me" request must ALWAYS produce a full package — force propose_package
+   *  once the basics are captured, even if the model showed tiers instead. */
+  const BUILD_RE = /(f[ăa]-?mi|fa-?mi|construi|construie|build it|do it for me|pachet complet|complete package|solu[țt]ie|end.?to.?end|surprinde|surprise me)/i;
+  async function maybeForceBuild(text: string, o: OrderState) {
+    if (!BUILD_RE.test(text)) return;
+    if (!o.eventType || o.graduates < 2) return;                 // need the basics first
+    if (o.lines.some((l) => ["sga_base", "sga_expert", "sga_vip"].includes(l.itemId))) return; // already built
+    await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"}. The customer asked you to build the full package for them. Call ONLY the propose_package tool now, passing preferences="${text.replace(/"/g, "")}". Do NOT show the Base/Expert/VIP tiers and do NOT ask them to pick — propose_package builds the venue + pack + extras within budget. After it returns, review what you built in 2 short sentences and point out it's within their budget.]`);
   }
 
   async function startFromText(text: string) {
@@ -577,7 +588,8 @@ export default function Home() {
       setLoading(false);
       setStatus(null);
     }
-    await keepMoving(resultOrder ?? orderRef.current);
+    await maybeForceBuild(v, resultOrder ?? orderRef.current);
+    await keepMoving(orderRef.current);
   }
 
   async function toggleLang() {
@@ -1214,8 +1226,14 @@ function Landing({
   const [text, setText] = useState("");
   const examples =
     lang === "ro"
-      ? ["Banchet de liceu în Constanța, 100 de absolvenți", "Absolvire facultate, 80 de absolvenți, ~30.000 RON", "Festivitate de liceu cu artist live"]
-      : ["Highschool banquet in Constanța, 100 graduates", "University graduation, 80 grads, ~30,000 RON", "Highschool ceremony with a live artist"];
+      ? [
+          "Avem nevoie de o soluție pentru o absolvire de liceu în Constanța, 200 de absolvenți și 40 de invitați, buget 50.000 lei. Fă-mi tu pachetul complet.",
+          "Fă-mi un banchet de absolvire complet în Constanța pentru 150 de absolvenți, buget 80.000 lei, cu DJ.",
+        ]
+      : [
+          "We need a solution for a highschool graduation in Constanța, 200 graduates and 40 guests, budget 50,000 RON. Build the full package for me.",
+          "Build a complete graduation banquet in Constanța for 150 graduates, budget 80,000 RON, with a DJ.",
+        ];
   return (
     <div className="mx-auto w-full max-w-2xl py-14 sm:py-20">
       <div className="animate-rise flex flex-col items-center text-center">
