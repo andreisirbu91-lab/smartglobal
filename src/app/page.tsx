@@ -907,9 +907,9 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
     </div>
   ) : showChoices ? (
     <ChoiceCards
-      question={order.choices.question}
-      options={order.choices.options}
-      input={order.choices.input}
+      question={order.choices!.question}
+      options={order.choices!.options}
+      input={order.choices!.input}
       lang={lang}
       onPick={answerChoice}
       onOther={openOther}
