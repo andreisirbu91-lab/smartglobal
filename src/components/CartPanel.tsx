@@ -71,9 +71,20 @@ export function CartPanel({
         {quote.lines.length === 0 ? (
           <p className="py-8 text-center text-sm text-ink-soft">{t("empty", lang)}</p>
         ) : (
-          <ul className="space-y-2">
-            {quote.lines.map((l) => (
-              <li key={l.itemId} className="animate-rise flex items-start gap-2.5 rounded-xl bg-ivory/60 px-2.5 py-2">
+          <div className="space-y-3">
+            {(() => {
+              const sec = (c: string) => (c === "venues" ? 0 : c === "package" ? 1 : c === "banquet" ? 2 : 3);
+              const secLabel = (c: string) => [lang === "ro" ? "Locație" : "Venue", lang === "ro" ? "Pachet" : "Package", lang === "ro" ? "Banchet" : "Banquet", "Extra"][sec(c)];
+              const sorted = [...quote.lines].sort((a, b) => sec(a.category) - sec(b.category));
+              let last = -1;
+              return sorted.map((l) => {
+                const s = sec(l.category);
+                const header = s !== last ? secLabel(l.category) : null;
+                last = s;
+                return (
+              <div key={l.itemId}>
+                {header && <div className="kicker mb-1 mt-2 text-[10px] text-ink-soft/70">{header}</div>}
+              <div className="animate-rise flex items-start gap-2.5 rounded-xl bg-ivory/60 px-2.5 py-2">
                 <div onClick={() => setDetailId(l.itemId)} className="flex min-w-0 flex-1 cursor-pointer items-start gap-2.5" title={t("more", lang)}>
                   <LineThumb itemId={l.itemId} order={order} category={l.category} />
                   <div className="min-w-0 flex-1">
@@ -101,9 +112,12 @@ export function CartPanel({
                     ×
                   </button>
                 </div>
-              </li>
-            ))}
-          </ul>
+              </div>
+              </div>
+                );
+              });
+            })()}
+          </div>
         )}
       </div>
 
@@ -160,6 +174,15 @@ export function CartPanel({
           )
         ) : null}
       </div>
+
+      {/* Recap before payment */}
+      {quote.lines.length > 0 && (
+        <div className="mt-3 rounded-xl border border-gold/20 bg-gold/[0.05] px-3 py-2 text-[11px] text-ink-soft">
+          {lang === "ro" ? "Vei plăti acum un avans de " : "You'll pay a deposit now of "}
+          <b className="text-gold-deep">{money(Math.round(quote.total * 0.2))}</b>
+          {lang === "ro" ? ` (20%); restul de ${money(quote.total - Math.round(quote.total * 0.2))} înainte de eveniment. Factură proformă SmartBill automată.` : ` (20%); the rest ${money(quote.total - Math.round(quote.total * 0.2))} before the event. SmartBill proforma issued automatically.`}
+        </div>
+      )}
 
       {/* Contact + confirm */}
       <div className="no-print mt-3 space-y-2">

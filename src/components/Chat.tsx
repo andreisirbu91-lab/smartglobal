@@ -48,7 +48,7 @@ export function Chat({
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 scroll-thin">
         {messages.map((m, i) => (
-          <Bubble key={i} role={m.role} content={m.content} />
+          <Bubble key={i} role={m.role} content={m.content} typing={m.role === "assistant" && i === messages.length - 1 && i > 0} />
         ))}
         {loading && (
           <div className="animate-rise flex items-center gap-2 text-sm text-ink-soft">
@@ -99,7 +99,7 @@ export function Chat({
   );
 }
 
-function Bubble({ role, content }: { role: "user" | "assistant"; content: string }) {
+function Bubble({ role, content, typing }: { role: "user" | "assistant"; content: string; typing?: boolean }) {
   const isUser = role === "user";
   return (
     <div className={`animate-rise flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -110,10 +110,28 @@ function Bubble({ role, content }: { role: "user" | "assistant"; content: string
             : "card-soft rounded-bl-md text-ink"
         }`}
       >
-        {renderMarkdown(content)}
+        {typing ? <Typewriter text={content} /> : renderMarkdown(content)}
       </div>
     </div>
   );
+}
+
+/** Reveals the agent's newest message progressively (~1.2s max), then renders markdown. */
+function Typewriter({ text }: { text: string }) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    setN(0);
+    if (!text) return;
+    const stepSize = Math.max(1, Math.ceil(text.length / 70));
+    let i = 0;
+    const id = setInterval(() => {
+      i += stepSize;
+      setN(i);
+      if (i >= text.length) clearInterval(id);
+    }, 18);
+    return () => clearInterval(id);
+  }, [text]);
+  return n >= text.length ? <>{renderMarkdown(text)}</> : <>{text.slice(0, n)}</>;
 }
 
 /** Render **bold** safely and NEVER leak literal markdown symbols (**, ***, `, stray *). */
