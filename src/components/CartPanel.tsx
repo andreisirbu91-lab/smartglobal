@@ -41,7 +41,7 @@ export function CartPanel({
   const ready = canConfirm(order);
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto scroll-thin">
+    <div className="flex h-full flex-col">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-display text-xl text-ink">{t("yourPackage", lang)}</h2>
         <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export function CartPanel({
       <Hairline className="my-3" />
 
       {/* Lines */}
-      <div className="pr-1">
+      <div className="min-h-[120px] flex-1 overflow-y-auto pr-1 scroll-thin">
         {quote.lines.length === 0 ? (
           <p className="py-8 text-center text-sm text-ink-soft">{t("empty", lang)}</p>
         ) : (
