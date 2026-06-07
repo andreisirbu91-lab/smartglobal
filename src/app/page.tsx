@@ -346,8 +346,8 @@ export default function Home() {
     else if (ch?.options?.length) sig = "c:" + ch.options.map((o) => o.label).sort().join("|");
     if (!sig) return;
     if (sig === lastSigRef.current) {
+      // Consecutive duplicate — drop it silently. Do NOT re-nudge the agent (that caused a loop).
       setOrder((o) => { const n = { ...o }; delete n.tiers; delete n.choices; return n; });
-      keepMoving({ ...orderRef.current, tiers: undefined, choices: undefined });
     } else {
       lastSigRef.current = sig;
       nudgeRef.current = 0;
@@ -848,6 +848,8 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   // Source-of-truth guard: never surface what's already in the cart or covered by the chosen pack.
   const coveredIds = (() => {
     const s = new Set<string>(order.lines.map((l) => l.itemId));
+    // Once ANY pack is chosen, the package category is done — never re-surface Base/Expert/VIP.
+    if (order.lines.some((l) => ["sga_base", "sga_expert", "sga_vip"].includes(l.itemId))) ["sga_base", "sga_expert", "sga_vip"].forEach((id) => s.add(id));
     if (order.lines.some((l) => l.itemId === "sga_vip")) ["toca_digital", "toca_painted", "prosecco_bar", "candy_bar", "sga_sushi_bar"].forEach((id) => s.add(id));
     return s;
   })();
