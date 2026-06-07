@@ -136,6 +136,31 @@ const hash = (s: string) => {
   return Math.abs(h);
 };
 
+/** Pick a representative photo for a package-included feature line (theatrical reveal). */
+const FEATURE_IMG: { re: RegExp; id: string }[] = [
+  { re: /rob[ăa]|gown|toc[ăa]|cap\b/i, id: "1564981797816-1043664bf78d" },
+  { re: /e[șs]arf|sash|badge|insign/i, id: "1627556704302-624286467c65" },
+  { re: /diplom/i, id: "1606326608606-aa0b62935f2b" },
+  { re: /gift|cadou|box/i, id: "1513201099705-a9746e1e201f" },
+  { re: /[șs]edin[țt]|photo session|portret|portrait/i, id: "1554048612-b6a482bc67e5" },
+  { re: /fotograf|photograph|event photo|fotografiere/i, id: "1452587925148-ce544e77e70d" },
+  { re: /photobooth|360|videobooth/i, id: "1567446537708-ac4aa75c9c28" },
+  { re: /livestream|4k|film|video|after movie/i, id: "1500051638674-ff996a0ec29e" },
+  { re: /medal|trofe|troph/i, id: "1492684223066-81342ee5ff30" },
+  { re: /sound|led|firework|sonoriz|artific|scen|stage/i, id: "1467810563316-b5476525c0f9" },
+  { re: /host|presidium|prezidiu|planner|prezentator|crew|echip/i, id: "1505373877841-8d25f7d46678" },
+  { re: /village|festival/i, id: "1470229722913-7c0e2dbbafd3" },
+  { re: /prosecco|lemonade|drinks|bar|b[ăa]utur|van/i, id: "1514362545857-3bc16c4c7d1b" },
+  { re: /smoke|fumigen|intrare|entrance|remember|clip/i, id: "1530103862676-de8c9debad1d" },
+  { re: /coffee|cafea/i, id: "1495474472287-4d71bcdd2085" },
+  { re: /\bdj\b|mix/i, id: "1459749411175-04bf5292ceea" },
+  { re: /liter|letter|roses|trandafir|d[eé]cor|decor|flow|flori/i, id: "1478146896981-b80fe463b330" },
+];
+export function featureImage(text: string): string {
+  const hit = FEATURE_IMG.find((f) => f.re.test(text));
+  return U(hit ? hit.id : "1523050854058-8df90110c9f1");
+}
+
 export function imageUrl(path: string): string {
   return path.startsWith("http") || path.startsWith("/") ? path : `/catalog/${path}.jpg`;
 }

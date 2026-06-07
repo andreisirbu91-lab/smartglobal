@@ -34,7 +34,7 @@ import { TierCards } from "@/components/TierCards";
 import { VariantCarousel } from "@/components/VariantCarousel";
 import { OnlineClassmates } from "@/components/OnlineClassmates";
 import { money, tr } from "@/lib/format";
-import { itemImage } from "@/lib/images";
+import { itemImage, featureImage } from "@/lib/images";
 import { searchVenues } from "@/lib/places";
 import { t } from "@/lib/i18n";
 import { Chat, type ChatMessage } from "@/components/Chat";
@@ -106,6 +106,8 @@ export default function Home() {
   const toastIdRef = useRef(0);
   const buildModeRef = useRef<{ active: boolean; prefs: string }>({ active: false, prefs: "" });
   const buildBusyRef = useRef(false);
+  const skipRevealRef = useRef(false);
+  const [reveal, setReveal] = useState<{ title: string; img: string; idx: number; total: number } | null>(null);
   function showToast(text: string) {
     const id = ++toastIdRef.current;
     setToasts((t) => [...t, { id, text }]);
@@ -618,16 +620,17 @@ export default function Home() {
       setOrder((o) => addItem(o, id));
       if (it) showToast((lang === "ro" ? "Adăugat: " : "Added: ") + tr(it.name, lang));
       await pause(900);
-      // When it's a graduation pack, reveal everything inside it, one line at a time.
+      // When it's a graduation pack, reveal everything inside it as a card-with-photo slideshow.
       if (["sga_base", "sga_expert", "sga_vip"].includes(id) && it?.includes) {
         const inc = it.includes[lang];
-        setMessages((m) => [...m, { role: "assistant", content: `**${tr(it.name, lang)}** ${lang === "ro" ? "include" : "includes"}:` }]);
-        for (const line of inc) {
-          await pause(900);
-          setMessages((m) => { const last = m[m.length - 1]; return [...m.slice(0, -1), { ...last, content: last.content + "\n✓ " + line }]; });
-          showToast("✓ " + line);
+        setMessages((m) => [...m, { role: "assistant", content: `**${tr(it.name, lang)}** ${lang === "ro" ? "include, pas cu pas:" : "includes, step by step:"}` }]);
+        skipRevealRef.current = false;
+        for (let k = 0; k < inc.length; k++) {
+          setReveal({ title: inc[k], img: featureImage(inc[k]), idx: k + 1, total: inc.length });
+          await pause(skipRevealRef.current ? 260 : 1600);
         }
-        await pause(700);
+        setReveal(null);
+        await pause(400);
       }
     }
 
@@ -971,6 +974,22 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
           {toasts.map((tt) => (
             <div key={tt.id} className="animate-rise rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-ivory shadow-[0_12px_30px_-10px_rgba(38,35,32,.6)]">✓ {tt.text}</div>
           ))}
+        </div>
+      )}
+      {reveal && (
+        <div onClick={() => { skipRevealRef.current = true; }} className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/55 p-4 backdrop-blur-sm">
+          <div key={reveal.idx} className="animate-rise w-full max-w-sm overflow-hidden rounded-3xl bg-card shadow-2xl">
+            <div className="relative h-52 w-full overflow-hidden" style={{ background: "linear-gradient(135deg,#f3ecdd,#e3cf9c)" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={reveal.img} alt="" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+              <div className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-ink">{reveal.idx}/{reveal.total}</div>
+            </div>
+            <div className="flex items-center gap-2.5 p-5">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gold text-white">✓</span>
+              <span className="text-display text-[18px] leading-tight text-ink">{reveal.title}</span>
+            </div>
+            <div className="px-5 pb-4 text-[11px] text-ink-soft/70">{lang === "ro" ? "inclus în pachet · atinge pentru a sări" : "included in your package · tap to skip"}</div>
+          </div>
         </div>
       )}
       {tab === "chat" && quote.lines.length > 0 && (

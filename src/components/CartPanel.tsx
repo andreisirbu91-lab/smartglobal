@@ -150,6 +150,14 @@ export function CartPanel({
           <span className="text-display text-lg text-ink">{t("total", lang)}</span>
           <span className="text-display text-2xl text-gold-deep">{money(quote.total)}</span>
         </div>
+        {quote.total > 0 && (
+          <div className="rounded-lg bg-gold/[0.08] px-3 py-2 text-[12.5px] font-semibold text-ink">
+            {lang === "ro" ? "Avans acum " : "Deposit now "}
+            <span className="text-gold-deep">{money(Math.round(quote.total * 0.2))}</span> (20%) · {lang === "ro" ? "restul " : "rest "}
+            <span className="text-ink">{money(quote.total - Math.round(quote.total * 0.2))}</span> {lang === "ro" ? "înainte de eveniment" : "before the event"}
+            <div className="text-[11px] font-normal text-ink-soft">🧾 {lang === "ro" ? "Factură proformă SmartBill, automat." : "SmartBill proforma, issued automatically."}</div>
+          </div>
+        )}
         {quote.total > 0 && (() => {
           const people = Math.max(1, order.graduates + order.guests);
           return (
@@ -175,14 +183,6 @@ export function CartPanel({
         ) : null}
       </div>
 
-      {/* Recap before payment */}
-      {quote.lines.length > 0 && (
-        <div className="mt-3 rounded-xl border border-gold/20 bg-gold/[0.05] px-3 py-2 text-[11px] text-ink-soft">
-          {lang === "ro" ? "Vei plăti acum un avans de " : "You'll pay a deposit now of "}
-          <b className="text-gold-deep">{money(Math.round(quote.total * 0.2))}</b>
-          {lang === "ro" ? ` (20%); restul de ${money(quote.total - Math.round(quote.total * 0.2))} înainte de eveniment. Factură proformă SmartBill automată.` : ` (20%); the rest ${money(quote.total - Math.round(quote.total * 0.2))} before the event. SmartBill proforma issued automatically.`}
-        </div>
-      )}
 
       {/* Contact + confirm */}
       <div className="no-print mt-3 space-y-2">
