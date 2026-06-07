@@ -138,13 +138,13 @@ export function VariantCarousel({
               <button
                 key={item.id + i}
                 onClick={() => { if (didDrag.current) return; onSelect(item.id); }}
-                className="absolute h-[150px] w-[114px] overflow-hidden rounded-2xl border bg-card text-left shadow-[0_24px_48px_-24px_rgba(38,35,32,.5)] transition-[border-color] sm:h-[172px] sm:w-[132px]"
-                style={{ transform: `translate(${x}px, ${y}px) scale(${scale})`, opacity, zIndex: z + 100, borderColor: sel ? "var(--color-gold)" : "rgba(38,35,32,.10)" }}
+                className="absolute h-[150px] w-[114px] overflow-hidden rounded-2xl border text-left shadow-[0_24px_48px_-24px_rgba(38,35,32,.5)] transition-[border-color] sm:h-[172px] sm:w-[132px]"
+                style={{ transform: `translate(${x}px, ${y}px) scale(${scale})`, opacity, zIndex: z + 100, borderColor: sel ? "var(--color-gold)" : "rgba(38,35,32,.10)", background: "linear-gradient(135deg,#f3ecdd,#e3cf9c)" }}
               >
                 {item.src ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.src} alt={item.title} className="h-full w-full object-cover" />
-                ) : <div className="h-full w-full bg-ivory-deep" />}
+                  <img src={item.src} alt={item.title} className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                ) : null}
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent p-2">
                   <div className="truncate text-[11px] font-medium text-white">{item.title}</div>
                   {item.price && <div className="text-[10px] text-white/85">{item.price}</div>}
@@ -202,7 +202,7 @@ function CarouselInfo({ item, lang, onClose, onChoose, chosen }: { item: Carouse
           <div className={`grid gap-1 ${gallery.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
             {gallery.map((g, i) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={i} src={g} alt={item.title} className={`h-32 w-full object-cover ${gallery.length === 1 ? "rounded-t-2xl" : i === 0 ? "rounded-tl-2xl" : i === 1 ? "rounded-tr-2xl" : ""}`} />
+              <img key={i} src={g} alt={item.title} onError={(e) => { e.currentTarget.style.display = "none"; }} className={`h-32 w-full object-cover ${gallery.length === 1 ? "rounded-t-2xl" : i === 0 ? "rounded-tl-2xl" : i === 1 ? "rounded-tr-2xl" : ""}`} />
             ))}
           </div>
         )}
