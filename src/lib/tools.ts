@@ -518,7 +518,13 @@ export async function executeTool(
       const hasVip = next.lines.some((l) => l.itemId === "sga_vip");
       const barIds = new Set(["prosecco_bar", "candy_bar", "sga_sushi_bar"]); // VIP already includes the bars
 
-      // 3) Extras from the LLM proposal — never a pack, never a duplicate, never pack-covered, within budget.
+      // 3) Honor EXPLICIT requests FIRST (they take budget priority over discretionary extras).
+      if (/\bdj\b/.test(prefs) && !next.lines.some((l) => l.itemId.startsWith("art_dj_"))) {
+        const cand = addItem(next, "art_dj_cristi_stanciu");
+        if (fits(cand)) { next = cand; added.push("Cristi Stanciu (DJ)"); }
+      }
+
+      // 4) Extras from the LLM proposal — never a pack, never a duplicate, never pack-covered, within budget.
       for (const id of proposal.itemIds) {
         if (isPack(id)) continue;
         if (next.lines.some((l) => l.itemId === id)) continue;
@@ -527,12 +533,6 @@ export async function executeTool(
         if (!fits(cand)) { skipped++; continue; }
         next = cand;
         const nm = itemById(id)?.name.en; if (nm) added.push(nm);
-      }
-
-      // 4) Honor an explicit "DJ" request even if the model missed it.
-      if (/\bdj\b/.test(prefs) && !next.lines.some((l) => l.itemId.startsWith("art_dj_"))) {
-        const cand = addItem(next, "art_dj_cristi_stanciu");
-        if (fits(cand)) { next = cand; added.push("Cristi Stanciu (DJ)"); }
       }
 
       return { state: next, result: { ok: true, added, skipped, note: proposal.note, withinBudget: budget > 0 ? budget : "flexible", quote: computeQuote(next), stepIndex: next.stepIndex } };
