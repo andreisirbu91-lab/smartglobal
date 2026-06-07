@@ -858,6 +858,18 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
   })();
   const tierOpts = (order.tiers?.options ?? []).filter((o) => o.itemIds.some((id) => !coveredIds.has(id)));
   const spotIds = (order.spotlight ?? []).filter((id) => !coveredIds.has(id));
+  // Suppress a choice that re-asks something already captured (headcount / budget / date).
+  const choiceRedundant = (() => {
+    const ch = order.choices;
+    if (!ch?.options?.length) return false;
+    const labels = ch.options.map((o) => o.label.toLowerCase()).join(" ");
+    const money = /buget|budget|ron|lei|€/.test(labels);
+    if (order.context.budget && money) return true;                                  // budget already set
+    if (order.graduates > 1 && ch.input === "number" && !money) return true;          // headcount already set
+    if (order.context.date && ch.input === "date") return true;                       // date already set
+    return false;
+  })();
+  const showChoices = !!order.choices?.options?.length && !choiceRedundant;
 
   const surface = tierOpts.length ? (
     <div className="space-y-3">
@@ -881,7 +893,8 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
             id: o.label,
             src: first ? itemImage(first) : "",
             title: o.label,
-            subtitle: names.slice(0, 3).join(" · "),
+            // Preview the real contents on the card (not just the pack name); Info shows the full list.
+            subtitle: bullets.slice(0, 3).join(" · ") + (bullets.length > 3 ? ` +${bullets.length - 3}` : ""),
             price,
             images: resolved.map((it) => itemImage(it)),
             bullets,
@@ -891,7 +904,7 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
       />
       {skipCategory}
     </div>
-  ) : order.choices?.options?.length ? (
+  ) : showChoices ? (
     <ChoiceCards
       question={order.choices.question}
       options={order.choices.options}
