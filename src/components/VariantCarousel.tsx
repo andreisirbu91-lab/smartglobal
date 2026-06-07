@@ -125,14 +125,16 @@ export function VariantCarousel({
       >
         <div className="absolute inset-0 flex items-center justify-center">
           {windowItems.map((item, i) => {
+            const single = n === 1;
             const a = (((base + i * (360 / n)) % 360 + 360) % 360) * (Math.PI / 180);
             const depth = Math.sin(a);
             const R = Math.min(250, 96 + n * 20);
-            const x = Math.cos(a) * R + (mouse.x - 0.5) * 26;
-            const y = -depth * 22;
-            const scale = 0.6 + ((depth + 1) / 2) * 0.55;
-            const opacity = 0.4 + ((depth + 1) / 2) * 0.6;
-            const z = Math.round(depth * 100);
+            // A lone card stays centered and large (no orbit drift).
+            const x = single ? 0 : Math.cos(a) * R + (mouse.x - 0.5) * 26;
+            const y = single ? 0 : -depth * 22;
+            const scale = single ? 1.45 : 0.6 + ((depth + 1) / 2) * 0.55;
+            const opacity = single ? 1 : 0.4 + ((depth + 1) / 2) * 0.6;
+            const z = single ? 100 : Math.round(depth * 100);
             const sel = item.id === selectedId;
             return (
               <button
