@@ -957,6 +957,13 @@ Do NOT finalize the booking; invite them to press Finalize again when ready.]`;
           ))}
         </div>
       )}
+      {tab === "chat" && quote.lines.length > 0 && (
+        <button onClick={() => setTab("cart")} className="no-print fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2.5 rounded-full bg-ink px-5 py-3 text-[13px] font-medium text-ivory shadow-[0_16px_36px_-12px_rgba(38,35,32,.7)] lg:hidden">
+          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1.5 text-[11px] font-semibold">{quote.lines.length}</span>
+          <span className="text-gold-soft">{money(quote.total)}</span>
+          <span>{lang === "ro" ? "Vezi coșul →" : "View cart →"}</span>
+        </button>
+      )}
       <Header
         lang={lang}
         eventName={evt ? tr(evt.name, lang) : null}

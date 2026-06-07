@@ -84,6 +84,11 @@ export function CartPanel({
                         <span className="ml-1 text-wine">· {t("savings", lang)} {money(l.savings)}</span>
                       ) : null}
                     </div>
+                    {(l.category === "artists" || l.category === "venues") && (
+                      <div className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-gold/10 px-1.5 py-0.5 text-[10px] text-gold-deep">
+                        ◷ {lang === "ro" ? "se confirmă cu echipa" : "confirmed with our team"}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -141,6 +146,19 @@ export function CartPanel({
           );
         })()}
         {order.context.budget ? <BudgetBar total={quote.total} budget={order.context.budget} lang={lang} /> : null}
+        {order.context.budget && quote.total > 0 ? (
+          quote.total <= order.context.budget ? (
+            order.context.budget - quote.total > 500 ? (
+              <p className="text-[11px] text-gold-deep">{lang === "ro"
+                ? `Mai ai ${money(order.context.budget - quote.total)} în buget — e loc de încă un extra premium (artist, album sau bar).`
+                : `You have ${money(order.context.budget - quote.total)} left — room for one more premium add-on (artist, album or bar).`}</p>
+            ) : null
+          ) : (
+            <p className="text-[11px] text-wine">{lang === "ro"
+              ? `${money(quote.total - order.context.budget)} peste buget — pot încadra dacă scoatem un extra.`
+              : `${money(quote.total - order.context.budget)} over budget — I can fit it by trimming an extra.`}</p>
+          )
+        ) : null}
       </div>
 
       {/* Contact + confirm */}
