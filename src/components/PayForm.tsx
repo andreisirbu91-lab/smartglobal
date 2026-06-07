@@ -27,6 +27,11 @@ const L = {
   payNow: { en: "Pay", ro: "Plătește" },
   confirmInvoice: { en: "Confirm — invoice by transfer", ro: "Confirmă — factură prin transfer" },
   transferNote: { en: "We'll email the SmartBill invoice with bank details; pay by transfer before the event.", ro: "Trimitem pe email factura SmartBill cu datele bancare; achitați prin transfer înainte de eveniment." },
+  billing: { en: "Billing details (for the invoice)", ro: "Date de facturare (pentru factură)" },
+  billName: { en: "Full name / Company", ro: "Nume / Companie" },
+  billTax: { en: "CNP / CUI", ro: "CNP / CUI" },
+  billAddr: { en: "Address", ro: "Adresă" },
+  billCity: { en: "City / County", ro: "Oraș / Județ" },
 };
 const tr = (k: keyof typeof L, lang: Lang) => L[k][lang];
 
@@ -37,14 +42,20 @@ export function PayForm({ id, deposit, total, ref_, lang }: { id: string; deposi
   const [exp, setExp] = useState("12 / 28");
   const [cvc, setCvc] = useState("123");
   const [name, setName] = useState("");
+  const [billName, setBillName] = useState("");
+  const [billTax, setBillTax] = useState("");
+  const [billAddr, setBillAddr] = useState("");
+  const [billCity, setBillCity] = useState("Constanța");
   const [loading, setLoading] = useState(false);
 
   const amountNow = mode === "full" ? total : mode === "deposit" ? deposit : 0;
+  const billOk = billName.trim() && billAddr.trim();
 
   async function pay() {
     setLoading(true);
     try {
-      const res = await fetch("/api/pay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, mode }) });
+      const billing = { name: billName.trim(), taxId: billTax.trim(), address: billAddr.trim(), city: billCity.trim() };
+      const res = await fetch("/api/pay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, mode, billing }) });
       if (!res.ok) throw new Error();
       await new Promise((r) => setTimeout(r, 700)); // simulate processing
       router.push(`/booking/${id}`);
@@ -113,7 +124,20 @@ export function PayForm({ id, deposit, total, ref_, lang }: { id: string; deposi
           </>
         )}
 
-        <button onClick={pay} disabled={loading} className="btn-gold mt-2 w-full rounded-full py-3 text-sm font-semibold disabled:opacity-60">
+        {/* Billing details — required for the SmartBill invoice */}
+        <div className="rounded-xl border border-ink/10 bg-ivory/50 p-3">
+          <span className="mb-2 block text-[11px] uppercase tracking-wide text-ink-soft">{tr("billing", lang)}</span>
+          <div className="space-y-2">
+            <input value={billName} onChange={(e) => setBillName(e.target.value)} placeholder={tr("billName", lang)} className="input" />
+            <div className="grid grid-cols-2 gap-2">
+              <input value={billTax} onChange={(e) => setBillTax(e.target.value)} placeholder={tr("billTax", lang)} className="input" />
+              <input value={billCity} onChange={(e) => setBillCity(e.target.value)} placeholder={tr("billCity", lang)} className="input" />
+            </div>
+            <input value={billAddr} onChange={(e) => setBillAddr(e.target.value)} placeholder={tr("billAddr", lang)} className="input" />
+          </div>
+        </div>
+
+        <button onClick={pay} disabled={loading || !billOk} className="btn-gold mt-2 w-full rounded-full py-3 text-sm font-semibold disabled:opacity-60">
           {loading ? tr("paying", lang) : mode === "invoice" ? tr("confirmInvoice", lang) : `${tr("payNow", lang)} · ${money(amountNow)}`}
         </button>
         <p className="text-center text-[11px] text-ink-soft">🔒 {tr("secure", lang)}</p>

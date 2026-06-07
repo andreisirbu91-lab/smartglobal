@@ -25,8 +25,11 @@ export type BookingRecord = {
   amountPaid?: number;
   /** Simulated SmartBill invoice issued at checkout. */
   invoice?: { series: string; number: number; issuedAt: string; deposit: number };
+  billing?: { name?: string; taxId?: string; address?: string; city?: string };
   created_at: string;
 };
+
+export type Billing = { name?: string; taxId?: string; address?: string; city?: string };
 
 export type PaymentMode = "deposit" | "full" | "invoice";
 
@@ -66,14 +69,15 @@ export function buildInvoice(rec: BookingRecord): NonNullable<BookingRecord["inv
 }
 
 /** Record a payment (deposit / full / invoice) and issue the SmartBill invoice. */
-export async function recordPayment(id: string, mode: PaymentMode = "deposit") {
+export async function recordPayment(id: string, mode: PaymentMode = "deposit", billing?: Billing) {
   const rec = await getBooking(id);
   if (!rec) return null;
   const invoice = rec.invoice ?? buildInvoice(rec);
   const amountPaid = mode === "full" ? rec.total : mode === "deposit" ? Math.round(rec.total * 0.2) : 0;
   const paid = mode !== "invoice"; // invoice = pay later by transfer
   const status = mode === "full" ? "paid" : mode === "deposit" ? "deposit_paid" : "invoice_sent";
-  const patch = { paid, status, paymentMode: mode, amountPaid, invoice };
+  const patch: Record<string, unknown> = { paid, status, paymentMode: mode, amountPaid, invoice };
+  if (billing && (billing.name || billing.address)) patch.billing = billing;
   if (supabase) {
     await supabase.from("bookings").update(patch).eq("id", id);
   } else {

@@ -418,6 +418,9 @@ export default function Home() {
     if (hasSurface(o)) { nudgeRef.current = 0; return; }
     if (!o.eventType) return;                               // pre-event: agent's own flow handles it
     if (o.contact?.name && o.contact?.email) return;        // ready to finalize — nothing to surface
+    // Over budget, or already a full package (venue + pack) — don't push more; let them finalize/trim.
+    const b = o.context.budget ?? 0;
+    if (b > 0 && computeQuote(o).total > b) return;
     if (nudgeRef.current >= 2) return;                      // never loop forever
     nudgeRef.current++;
     await runTurn(`[SYSTEM NOTE (always English) — reply ONLY in ${lang === "ro" ? "Romanian" : "English"}. The screen is EMPTY — you ended a turn without putting anything on screen, which is NOT allowed. In ONE short sentence, continue the plan, then IMMEDIATELY call a tool that surfaces something: recommend_tiers for the NEXT not-yet-covered category (if no graduation PACK is in the cart yet, show Base/Expert/VIP), or ask_choice, or — if everything's covered and a venue + pack are in the cart — ask for the customer's name & email to finalize. Do NOT re-offer items already in the cart or covered by the pack. Do NOT stop without a surface.]`);
