@@ -14,7 +14,7 @@ services:
     environment:
       LLMOK_API_KEY: ${LLMOK_API_KEY}
       LLMOK_BASE_URL: ${LLMOK_BASE_URL:-https://burn.llmok.app/v1}
-      LLMOK_MODEL: ${LLMOK_MODEL:-claude-sonnet-4-6}
+      LLMOK_MODEL: ${LLMOK_MODEL:-claude-opus-4-8}
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
       NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-https://startglobal.rzs-it.ro}

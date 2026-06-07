@@ -576,11 +576,23 @@ export default function Home() {
     }
     armBuildMode(text);
     const ob = orderRef.current;
-    if (buildModeRef.current.active && ob.context.date && ob.graduates >= 2 && !ob.lines.some((l) => ["sga_base", "sga_expert", "sga_vip"].includes(l.itemId))) {
-      void theatricalBuild();
+    const hasPack = ob.lines.some((l) => ["sga_base", "sga_expert", "sga_vip"].includes(l.itemId));
+    if (buildModeRef.current.active && ob.graduates >= 2 && !hasPack) {
+      if (ob.context.date) { void theatricalBuild(); return; }
+      // Build-for-me but no date yet → ALWAYS show the date picker (don't rely on the model to ask it).
+      forceDateChoice();
       return;
     }
     await keepMoving(orderRef.current);
+  }
+
+  /** Deterministic date picker for the auto-build flow — guarantees the date card appears. */
+  function forceDateChoice() {
+    const opts = lang === "ro"
+      ? ["Vineri, 19 iunie 2026", "Sâmbătă, 20 iunie 2026", "Sâmbătă, 27 iunie 2026"]
+      : ["Friday, 19 June 2026", "Saturday, 20 June 2026", "Saturday, 27 June 2026"];
+    setOrder((o) => ({ ...clearTiers(clearChoices({ ...o })), choices: { question: lang === "ro" ? "Pe ce dată o organizăm?" : "What date should we plan for?", input: "date", options: opts.map((label) => ({ label })) } }));
+    setTab("chat");
   }
 
   /** Detect a "build it for me" request and ARM build mode. The agent then asks the date
