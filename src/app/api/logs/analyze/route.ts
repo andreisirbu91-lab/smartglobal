@@ -38,7 +38,7 @@ ${log}`;
 
   try {
     const completion = await client.chat.completions.create({
-      model: process.env.LLMOK_MODEL ?? "claude-sonnet-4-6",
+      model: process.env.LLMOK_MODEL ?? "gpt-5.5",
       messages: [{ role: "user", content: prompt }],
     });
     const text = completion.choices[0]?.message?.content ?? "(no analysis)";

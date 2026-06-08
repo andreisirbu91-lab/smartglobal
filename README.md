@@ -1,7 +1,7 @@
 # ✦ Event Concierge — Conversational Booking Agent
 
 A conversational event-planning concierge. The customer describes their event in
-plain language; the agent runs a **Claude-style Q&A** — asking one friendly
+plain language; the agent runs a **conversational Q&A** — asking one friendly
 question at a time and showing **tappable choice cards** (real venues & products
 with photos, or quick choices) — assembles a package, upsells tastefully, adapts
 to budget, and ends in a **real, shareable, persisted booking** with a demo

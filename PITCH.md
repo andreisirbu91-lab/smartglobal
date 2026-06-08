@@ -23,7 +23,7 @@ The customer just talks (or taps). The agent:
 > **The LLM orchestrates the conversation; a deterministic engine computes every cent.**
 
 - **Engine** (`src/lib/engine.ts`) — pure functions: quantities, group discount, promos, negotiated deal, totals. The model **never** computes money → prices are always correct against the catalog rules.
-- **Agent** (`src/lib/llm.ts` + `tools.ts`) — Claude (Sonnet 4.6 via LLMok) drives a tool loop: `ask_choice` (choice cards), `recommend_items`, `search_venues`/`discover_places` (Google Places), `add_item`, `negotiate_discount`, `propose_package` (a second "solutions" agent that builds a full package), `set_contact`, …
+- **Agent** (`src/lib/llm.ts` + `tools.ts`) — LLM (via LLMok) drives a tool loop: `ask_choice` (choice cards), `recommend_items`, `search_venues`/`discover_places` (Google Places), `add_item`, `negotiate_discount`, `propose_package` (a second "solutions" agent that builds a full package), `set_contact`, …
 - **The golden rule** — the screen always mirrors the agent's last move (choice cards / products / venues), so the UI never desyncs from the chat.
 - **Stateless turns** — the client owns the order; each turn sends state + history. Easy to scale, easy to test.
 - **Self-improvement loop** — every turn is logged; an **observer agent** (`/api/logs/analyze`) reads real conversations and reports failure patterns; a **regression smoke suite** (`scripts/smoke-flows.py`, 6 multi-step scenarios) gates every change. Tester → Observer → Builder, with build + price tests + git rollback as guardrails.
@@ -34,7 +34,7 @@ The customer just talks (or taps). The agent:
 | Criterion | How |
 |---|---|
 | Assembles the right package via conversation (the differentiator) | Agent-driven Q&A; deterministic engine guarantees the order is valid & priced |
-| UX & naturalness | Claude-style choice cards, premium design, 1-tap, "type your own" everywhere, real photos |
+| UX & naturalness | Conversational choice cards, premium design, 1-tap, "type your own" everywhere, real photos |
 | Edge cases (changes, multiple attendees, discounts) | Per-attendee pricing, mid-chat changes, group/promo/negotiated discounts shown exactly |
 | Correctness vs catalog rules | Money is pure code, proven by `scripts/test-engine.ts` |
 | Creativity + multilingual + upsells | EN/RO with full chat translation, live social proof, anchored upsells, theatrical deal close |
@@ -102,7 +102,7 @@ Clientul doar vorbește (sau atinge). Agentul:
 > **LLM-ul conduce conversația; un motor determinist calculează fiecare leu.**
 
 - **Motor** (`engine.ts`) — funcții pure: cantități, discount de grup, promoții, negociere, totaluri. Modelul **nu** atinge banii → prețurile sunt mereu corecte față de regulile catalogului.
-- **Agent** (`llm.ts` + `tools.ts`) — Claude (Sonnet 4.6 via LLMok) cu buclă de tool-uri: `ask_choice`, `recommend_items`, `search_venues`/`discover_places`, `add_item`, `negotiate_discount`, `propose_package`, `set_contact`…
+- **Agent** (`llm.ts` + `tools.ts`) — LLM (via LLMok) cu buclă de tool-uri: `ask_choice`, `recommend_items`, `search_venues`/`discover_places`, `add_item`, `negotiate_discount`, `propose_package`, `set_contact`…
 - **Regula de aur** — ecranul oglindește mereu ultima mișcare a agentului → UI-ul nu se desincronizează niciodată de chat.
 - **Tururi stateless** — clientul deține comanda; ușor de scalat și testat.
 - **Bucla de auto-îmbunătățire** — fiecare tur e logat; un **agent-observator** (`/api/logs/analyze`) citește conversațiile reale și raportează tiparele de eșec; o **suită de regresie** (`scripts/smoke-flows.py`, 6 scenarii multi-pas) păzește fiecare schimbare. Tester → Observer → Builder, cu build + teste de preț + rollback git ca plase de siguranță.
@@ -111,7 +111,7 @@ Clientul doar vorbește (sau atinge). Agentul:
 | Criteriu | Cum |
 |---|---|
 | Asamblează pachetul corect prin conversație (diferențiatorul) | Q&A condus de agent; motorul determinist garantează o comandă validă și corect calculată |
-| UX & naturalețe | Carduri stil Claude, design premium, 1-tap, „scrie tu" peste tot, poze reale |
+| UX & naturalețe | Carduri conversaționale, design premium, 1-tap, „scrie tu" peste tot, poze reale |
 | Edge cases (modificări, mai mulți participanți, discounturi) | Preț per participant, modificări în chat, discounturi de grup/promo/negociat afișate exact |
 | Corectitudine față de catalog | Banii sunt cod pur, dovedit de `test-engine.ts` |
 | Creativitate + multilingv + upsell | RO/EN cu traducerea întregului chat, social proof live, upsell ancorat, close teatral |

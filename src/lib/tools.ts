@@ -153,7 +153,7 @@ export const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "ask_choice",
-      description: "Ask the customer a question and show 2-4 tappable CHOICE CARDS in the middle (Claude-style). Use for non-catalog decisions: event type, city, style/vibe, yes/no, headcount ranges, dates, package tiers. An 'Other / type my own' card is always added automatically. Keep options short and clear.",
+      description: "Ask the customer a question and show 2-4 tappable CHOICE CARDS in the middle. Use for non-catalog decisions: event type, city, style/vibe, yes/no, headcount ranges, dates, package tiers. An 'Other / type my own' card is always added automatically. Keep options short and clear.",
       parameters: {
         type: "object",
         properties: {

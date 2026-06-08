@@ -12,7 +12,7 @@ const client = new OpenAI({
   defaultHeaders: { "User-Agent": "Mozilla/5.0" },
 });
 
-const MODEL = process.env.LLMOK_MODEL ?? "claude-sonnet-4-6";
+const MODEL = process.env.LLMOK_MODEL ?? "gpt-5.5";
 
 export type TextMessage = { role: "user" | "assistant"; content: string };
 
