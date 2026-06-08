@@ -54,6 +54,9 @@ function statusFor(tool: string, lang: string): string | null {
  * Runs one assistant turn: feeds history + current order to the model, lets it
  * call tools (which mutate the order via the engine), and returns the final
  * narration plus the updated order. Stateless — the client owns the order.
+ *
+ * Note: token streaming is NOT used — the LLMok metered gateway rejects stream:true
+ * ("Streaming is disabled for metered gateway routes"). We return the full turn at once.
  */
 export async function runConversation(
   history: TextMessage[],
@@ -90,7 +93,6 @@ export async function runConversation(
       tools: TOOLS,
       tool_choice: "auto",
     });
-
     const choice = completion.choices[0].message;
 
     if (choice.tool_calls?.length) {

@@ -42,3 +42,4 @@ next-env.d.ts
 
 # local booking fallback store
 .data/
+.shots/
